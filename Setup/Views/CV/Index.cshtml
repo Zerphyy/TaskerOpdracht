@@ -1,0 +1,187 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Setup.Data.Personalia
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV Sandra van Gennep</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+
+<body>
+
+    <div class="page">
+        <section class="personalia">
+
+            <img class="person-logo" src="Images/person-pasfoto.png">
+            <h3 class="person-name">Linde Eikenboom</h3>
+
+            <div class="profile-content__category">
+                <h3 class="profile-content__category-title">Personalia</h3>
+                <hr>
+            </div>
+
+            <div class="profile-content__element">
+                <div class="profile-content__element-header person-info">
+                    <table>
+                        <tr>
+                            <td>@Model.Naam</td>
+                        </tr>
+                        <tr>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td>@Model.Telefoonnummer</td>
+                        </tr>
+                        <tr>
+                            <td>@Model.Straat <br> @Model.Zip</td>
+                        </tr>
+                        <tr>
+                            <td>@Model.Verjaardag.Day @Model.Verjaardag.Month, @Model.Verjaardag.Year</td>
+                        </tr>
+                        <tr>
+                            <td>@Model.LinkedIn</td>
+                        </tr>
+                        <tr>
+                            <td>BIG-nummer:: @Model.BIG</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="profile-content__category">
+                <h3 class="profile-content__category-title">Vaardigheden</h3>
+                <hr>
+            </div>
+
+            <div class="profile-content__element">
+                <div class="profile-content__element-header">
+                    <table>
+                        @{
+                            foreach (var item in Model.Vaardigheden)
+                            {
+                                <tr>
+                                    <td>@item.Key</td>
+                                    <td>@item.Value</td>
+                                </tr>
+                            }
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <div class="profile-content__category">
+                <h3 class="profile-content__category-title">Eigenschappen</h3>
+                <hr>
+            </div>
+
+            <div class="profile-content__element">
+                <div class="profile-content__element-header">
+                    <ul class="person-characteristics">
+                        @{
+                            foreach (var item in Model.Eigenschappen)
+                            {
+                                <li>@item</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="profile">
+
+            <section class="profile-content">
+
+                <div class="profile-content__category--hidden-mobile">
+                    <h3 class="profile-content__category-title">Profiel</h3>
+                    <hr>
+                </div>
+
+                <div class="profile-content__element--hidden-mobile">
+                    <div class="profile-content__element-header">
+                    </div>
+                    <p class="profile-content__description">
+                        @Model?.Profiel?.Beschrijving
+                    <p>
+                </div>
+
+
+
+
+                @{
+                    if (Model.Profiel.Opleidingen != null)
+                    {
+                        <div class="profile-content__category">
+                            <h3 class="profile-content__category-title">Opleidingen</h3>
+                            <hr>
+                        </div>
+                        <div class="profile-content__element">
+                            @{
+                                foreach (var item in Model.Profiel.Opleidingen)
+                                {
+                                    <div class="profile-content__element-header">
+                                        <h4 class="profile-content__title">@item.Naam</h4>
+                                        <p class="profile-content__period">@item.Van.ToString("dd/MM/yyyy") - @item.Tot.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                    <p class="profile-content__institute">@item.Plaats</p>
+                                }
+                            }
+                        </div>
+                    }
+                }
+
+
+                <div class="profile-content__category">
+                    <h3 class="profile-content__category-title">Cursussen</h3>
+                    <hr>
+                </div>
+
+                <div class="profile-content__element">
+                    <div class="profile-content__element-header">
+                        <h4 class="profile-content__title">Apotheker Specialist</h4>
+                        <p class="profile-content__period">2016</p>
+                    </div>
+                </div>
+
+                <div class="profile-content__element">
+                    <div class="profile-content__element-header">
+                        <h4 class="profile-content__title">Beoordelaar medicatieprofielen</h4>
+                        <p class="profile-content__period">2019</p>
+                    </div>
+                </div>
+
+                <div class="profile-content__element">
+                    <div class="profile-content__element-header">
+                        <h4 class="profile-content__title">Geregistreerd openbaar apotheker</h4>
+                        <p class="profile-content__period">2022</p>
+                    </div>
+                </div>
+
+                <div class="profile-content__category">
+                    <h3 class="profile-content__category-title">Werkervaring</h3>
+                    <hr>
+                </div>
+
+                <div class="profile-content__element">
+                    <div class="profile-content__element-header">
+                        <h4 class="profile-content__title">Apotheker specialist</h4>
+                        <p class="profile-content__period">jan 2017 - mei 2017</p>
+                    </div>
+                    <p class="profile-content__institute">Groningen</p>
+                </div>
+
+            </section>
+
+        </section>
+    </div>
+
+</body>
+
+</html>

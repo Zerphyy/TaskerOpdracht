@@ -1,0 +1,15 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    @using Microsoft.AspNetCore.Http;
+    ViewData["Title"] = "Home Page";
+    var cookieValue = HttpContextAccessor?.HttpContext?.Request.Cookies["PageViews"];
+    int parsedValue;
+    var isParsed = int.TryParse(cookieValue, out parsedValue);
+    var cookieWaarde = isParsed ? (parsedValue + 1) : 1;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Setup</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p>Deze view is @cookieWaarde keer bekeken</p>
+</div>

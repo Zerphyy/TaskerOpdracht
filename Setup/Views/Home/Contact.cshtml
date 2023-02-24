@@ -1,0 +1,131 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    string Naam = String.Empty;
+    string Onderwerp = String.Empty;
+    string Email = String.Empty;
+    string Phone = String.Empty;
+    string Bericht = String.Empty;
+    bool Nieuwsbrief = false;
+    DateTime Bellen = default(DateTime);
+    if (Model != null)
+    {
+        Naam = Model.Naam != String.Empty ? Model.Naam : "";
+        Onderwerp = Model.Onderwerp != String.Empty ? Model.Onderwerp : "";
+        Email = Model.Email != String.Empty ? Model.Email : "";
+        Phone = Model.Phone != String.Empty ? Model.Phone : String.Empty;
+        Bericht = Model.Bericht != String.Empty ? Model.Bericht : "";
+        Nieuwsbrief = Model.Nieuwsbrief != false ? Model.Nieuwsbrief : false;
+        Bellen = Model.Bellen != default(DateTime) ? Model.Bellen : default(DateTime);
+    }
+
+}
+@model Setup.Data.ContactData;
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Contactpagina</title>
+        <link rel="stylesheet" href="stylesheets/style.css">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    </head>
+
+    <body>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script>
+            function onSubmit(token) {
+
+                document.getElementById("demo-form").submit();
+            }
+        </script>
+        <div class="page">
+            <section class="contact">
+
+                <h1>Contact</h1>
+
+                <form method="post" action="/Home/Contact" class="form-contactpagina" id="demo-form">
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="naam">Naam: </label>
+                        <input type="text" name="naam" id="naam" placeholder="Kevin Spijker" required value="@Naam">
+                    </div>
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="onderwerp">Onderwerp: </label>
+                        <textarea type="text" name="onderwerp" id="onderwerp" required maxlength="200">@Onderwerp</textarea>
+                    </div>
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="email">Email: </label>
+                        <input type="email" name="email" id="email" required value="@Email">
+                    </div>
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="Phone">Telefoonnummer: </label>
+                        <input type="tel" name="Phone" pattern="[0-9]{10}" id="Phone" required value="@Phone">
+                    </div>
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="bericht">Bericht: </label>
+                        <textarea type="text" name="bericht" id="bericht" required maxlength="600">@Bericht</textarea>
+                    </div>
+
+                    <div class="form-contactpagina__inputelement">
+                        <fieldset>
+                            <legend>Wil je onze nieuwsbrief ontvangen?</legend>
+                            @if (Nieuwsbrief == true)
+                            {
+                                <label><input type="radio" name="Nieuwsbrief" value="True" itemid="Nieuwsbrief" checked /> Ja, graag!</label>
+                                <label><input type="radio" name="Nieuwsbrief" value="False" itemid="Nieuwsbrief" /> Nee, een andere keer</label>
+                            }
+                            else if (Nieuwsbrief == false)
+                            {
+                                <label><input type="radio" name="Nieuwsbrief" value="True" itemid="Nieuwsbrief" /> Ja, graag!</label>
+                                <label><input type="radio" name="Nieuwsbrief" value="False" itemid="Nieuwsbrief" checked /> Nee, een andere keer</label>
+                            }
+
+
+                        </fieldset>
+                    </div>
+
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="Bellen">Op welke dag kunnen we bellen? </label>
+                        @if (Bellen != default(DateTime))
+                        {
+                            <input name="Bellen" type="date" id="Bellen" value="@Bellen.ToString("yyyy-MM-dd")">
+                        } else
+                        {
+                            <input name="Bellen" type="date" id="Bellen">
+                        }
+
+                    </div>
+
+
+                    <div class="form-contactpagina__inputelement">
+                        <button class="g-recaptcha"
+                                data-sitekey="6LdMr5okAAAAAE8lL1oDszrJJURUpGoRR11Yogpy"
+                                data-callback='onSubmit'
+                                data-action='submit'>
+                            Submit
+                        </button>
+                    </div>
+
+                    <!-- #student-start -->
+                    <div class="form-contactpagina__inputelement fx-col">
+                        <label for="reset-form">Reset formulier </label>
+                        <input name="reset-form" type="reset" id="reset-form">
+                    </div>
+                    <!-- #student-end -->
+
+
+                </form>
+
+
+            </section>
+        </div>
+    </body>
