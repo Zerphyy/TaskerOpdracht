@@ -107,7 +107,8 @@ namespace Setup.Controllers
         static async Task SendMail(string email, string naam, string onderwerp, string nummer, string bericht, bool nieuwsbrief, DateTime? bellen)
         {
             var contactOpnemen = bellen != default(DateTime) ? $"je kan me vanaf {bellen} bereiken via {nummer}" : "Gelieve mij niet te bellen";
-            var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+            //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+            var apiKey = "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";
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
             var subject = onderwerp;
