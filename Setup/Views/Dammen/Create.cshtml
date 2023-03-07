@@ -1,0 +1,41 @@
+﻿@model Setup.Data.DamSpel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>DamSpel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post" action="/Dammen/Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="WinnaarId" class="control-label"></label>
+                <select asp-for="WinnaarId" class ="form-control" asp-items="ViewBag.WinnaarId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="DamBordId" class="control-label"></label>
+                <select asp-for="DamBordId" class ="form-control" asp-items="ViewBag.DamBordId"></select>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsSpelVoorbij" /> @Html.DisplayNameFor(model => model.IsSpelVoorbij)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

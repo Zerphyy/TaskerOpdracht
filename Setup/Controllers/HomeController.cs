@@ -63,7 +63,7 @@ namespace Setup.Controllers
             } else
             {
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
-                using (var dbContext = new ContactDataDBContext())
+                using (var dbContext = new WebpageDBContext())
                 {
                     dbContext.ContactData.Add(model);
                     dbContext.SaveChanges();

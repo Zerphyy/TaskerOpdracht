@@ -11,6 +11,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    //kijk hier naar V
+    //options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
 var app = builder.Build();
