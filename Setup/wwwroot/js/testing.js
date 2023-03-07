@@ -9,3 +9,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = new testing();
     createGameButton.addEventListener('click', t.test);
 });
+
+//use this class to see how razor -> javascript works. check out the Create Game button in Dammen->Index
