@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Setup.Data;
 
 namespace Setup.Controllers
 {
     public class DammenController : Controller
     {
         // GET: DammenController
-        public ActionResult Index()
+        public ActionResult Index(Data.DamSpel? model)
         {
             return View();
         }
@@ -25,18 +27,14 @@ namespace Setup.Controllers
 
         // POST: DammenController/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Data.DamSpel? model)
         {
-            collection.Keys.Contains("id");
-            try
+            using (var dbContext = new WebpageDBContext())
             {
-                return RedirectToAction(nameof(Index));
+                dbContext.DamSpel.Add(new DamSpel(0, "Hello World 2", null, null, 0, new Speler(0, "Kevin", "bestmail@email.com", "password124"),null, null,0, new DamBord(0), false));
+                dbContext.SaveChanges();
             }
-            catch
-            {
-                return View();
-            }
+            return RedirectToAction("Index");
         }
 
         // GET: DammenController/Edit/5

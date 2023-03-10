@@ -7,8 +7,11 @@ namespace Setup.Data
         public int Id { get; set; }
         public List<DamBordVakje> DamBordVakjes { get; set; }
 
-        public DamBord()
+
+        public DamBord() { }
+        public DamBord(int id)
         {
+            this.Id = id;
             DamBordVakjes = VulBord();
         }
 

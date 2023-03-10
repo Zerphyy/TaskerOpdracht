@@ -15,5 +15,16 @@ namespace Setup.Data
         public int WinLossRatio { get; set; }
         public int LangsteWinstreak { get; set; }
 
+        public SpelerStats() { }
+        public SpelerStats(int iD, Speler speler, int aantalSpellen, int aantalGewonnen, int aantalVerloren, int winLossRatio, int langsteWinstreak)
+        {
+            ID = iD;
+            Speler = speler;
+            AantalSpellen = aantalSpellen;
+            AantalGewonnen = aantalGewonnen;
+            AantalVerloren = aantalVerloren;
+            WinLossRatio = winLossRatio;
+            LangsteWinstreak = langsteWinstreak;
+        }
     }
 }

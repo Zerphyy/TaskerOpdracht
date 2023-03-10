@@ -15,5 +15,14 @@ namespace Setup.Data
         [Required]
         [PasswordPropertyText]
         public string Wachtwoord { get; set; }
+
+        public Speler() { }
+        public Speler(int Id, string naam, string email, string wachtwoord)
+        {
+            this.ID = Id;
+            this.Email = email;
+            this.Naam = naam;
+            this.Wachtwoord = wachtwoord;
+        }
     }
 }

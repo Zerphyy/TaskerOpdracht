@@ -8,9 +8,11 @@ namespace Setup.Data
     {
         public DbSet<ContactData> ContactData { get; set; }
         public DbSet<DamSpel> DamSpel { get; set; }
+        public DbSet<DamBord> DamBord { get; set; }
+        public DbSet<DamBordVakje> DamBordVakje { get; set; }
+        public DbSet<DamStuk> DamStuk { get; set; }
         public DbSet<Speler> Speler { get; set; }
         public DbSet<SpelerStats> SpelerStats { get; set; }
-        public DbSet<DamSpelOverzicht> DamSpelOverzicht { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

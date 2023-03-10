@@ -1,4 +1,4 @@
-﻿@model Setup.Data.DamSpelOverzicht
+﻿@model IEnumerable<Setup.Data.DamSpel>
 
 @{
     ViewData["Title"] = "Index";
@@ -6,27 +6,17 @@
 <script src="~/js/testing.js" asp-append-version="true"></script>
 <h1>Index</h1>
 
-<div>
-    <h4>DamSpelOverzicht</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Creator)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Creator.Naam)
-        </dd>
-    </dl>
-    <h4>Eigen aangemaakte games</h4>
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Creator)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Creator.Naam)
-        </dd>
-    </dl>
-</div>
+<table class="table">
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.SpelNaam)
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
 <div>
     <a asp-action="Create">Maak spel aan</a> |
     <a asp-action="Index">Back to List</a>
