@@ -8,8 +8,13 @@ namespace Setup.Controllers
     public class DammenController : Controller
     {
         // GET: DammenController
-        public ActionResult Index(Data.DamSpel? model)
+        public ActionResult Index()
         {
+            var dbContext = new WebpageDBContext();
+            var damSpellen = dbContext.DamSpel.ToList();
+            var spelers = dbContext.Speler.ToList();
+            ViewBag.Spelers = spelers;
+            ViewBag.DamSpellen = damSpellen;
             return View();
         }
 
@@ -31,7 +36,7 @@ namespace Setup.Controllers
         {
             using (var dbContext = new WebpageDBContext())
             {
-                dbContext.DamSpel.Add(new DamSpel(0, "Hello World 2", null, null, 0, new Speler(0, "Kevin", "bestmail@email.com", "password124"),null, null,0, new DamBord(0), false));
+                dbContext.Add(new DamSpel(0, model.SpelNaam, null, null, 0, new Speler(0, "Kevin", "bestmail@email.com", "password124"),null, null,0, new DamBord(0), false));
                 dbContext.SaveChanges();
             }
             return RedirectToAction("Index");

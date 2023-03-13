@@ -2,19 +2,26 @@
 
 @{
     ViewData["Title"] = "Index";
+
 }
 <script src="~/js/testing.js" asp-append-version="true"></script>
 <h1>Index</h1>
 
 <table class="table">
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.SpelNaam)
-            </td>
-        </tr>
-}
+        @foreach (var spel in ViewBag.DamSpellen)
+        {
+            <tr>
+                <td>@spel.SpelNaam</td>
+                @foreach (var speler in ViewBag.Spelers)
+                {
+                    if (speler.ID == spel.CreatorId)
+                    {
+                        <td>@speler.Naam</td>
+                    }
+                }
+            </tr>
+        }
     </tbody>
 </table>
 <div>

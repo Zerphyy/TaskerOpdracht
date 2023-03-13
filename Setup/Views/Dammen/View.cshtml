@@ -11,10 +11,10 @@
 </p>
 <table class="table">
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in ViewBag.TableData) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.SpelNaam)
+                @item.SpelNaam
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
@@ -23,5 +23,6 @@
             </td>
         </tr>
 }
+        
     </tbody>
 </table>
