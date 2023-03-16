@@ -12,7 +12,7 @@ jobs:
       - name: Publish application
         run   : dotnet publish -c Release -o publish/
       - name: Copy files to server
-        uses: appleboy/scp-action@Development
+        uses: appleboy/scp-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.USERNAME }}
