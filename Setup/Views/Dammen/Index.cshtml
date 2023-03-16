@@ -8,6 +8,11 @@
 <h1>Index</h1>
 
 <table class="table">
+    <thead>Spel naam</thead>
+    <thead>Speler 1</thead>
+    <thead>Speler 2</thead>
+    <thead>Spel bekijken</thead>
+    <thead>Spelen</thead>
     <tbody>
         @foreach (var spel in ViewBag.DamSpellen)
         {
@@ -20,6 +25,12 @@
                         <td>@speler.Naam</td>
                     }
                 }
+                <td>
+                    <a asp-action="Edit" >Edit</a>
+                </td>
+                <td>
+                    <a asp-action="Details">Details</a>
+                </td>
             </tr>
         }
     </tbody>
@@ -27,5 +38,5 @@
 <div>
     <a asp-action="Create">Maak spel aan</a> |
     <a asp-action="Index">Back to List</a>
-    <button id="create-game-button">Create Game</button>
+    <button id="create-game-button" draggable="true">Create Game</button>
 </div>
