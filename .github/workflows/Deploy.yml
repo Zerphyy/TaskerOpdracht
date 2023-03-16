@@ -1,21 +1,21 @@
-name: GitHub Deploy Testing
-run-name: ${{ github.actor }} is using the deploy workflow
+name: GitHub Deploy Demo
+run-name: ${{ github.actor }} is testing out GitHub Deploy 🚀
 on: [push]
-jobs: 
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout code
+jobs:
+  Explore-Developer-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
         uses : actions/checkout@v3
-        - name: Build .NET App
-        run: dotnet build
-        - name: Publish Application
-        run: dotnet publish -c Release -o publish/
-        - name: Copy files to server
+      - name: Build .NET App
+        run   : dotnet build
+      - name: Publish application
+        run   : dotnet publish -c Release -o publish/
+      - name: Copy files to server
         uses: appleboy/scp-action@main
         with:
-        host: ${{ env.SERVER_IP }}
-        username: ${{ env.USERNAME }}
-        key: ${{ secrets.SERVER_KEY }}
-        source: publish/
-        target: ${{ env.REMOTE_DIRECTORY }}
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.USERNAME }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: publish/
+          target: ${{ env.REMOTE_DIRECTORY }}
