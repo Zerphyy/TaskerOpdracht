@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Xml;
 
 namespace Setup.Data
 {
-    public class WebpageDBContext:DbContext
+    public class WebpageDBContext:IdentityDbContext
     {
         public DbSet<ContactData> ContactData { get; set; }
         public DbSet<DamSpel> DamSpel { get; set; }
@@ -25,5 +27,17 @@ namespace Setup.Data
                 optionsBuilder.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
             }
         }
+        //seeden van DB tabel (zouu verouderd kunnen zijn)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //geef base db creation values voor alle standard tables
+            base.OnModelCreating(modelBuilder);
+            //seed tables die niet aangepast hoeven te worden
+            modelBuilder.Entity<DamStuk>().HasData(new DamStuk {Id = 1, Kleur = Kleur.Wit, Type = Type.Schijf });
+            modelBuilder.Entity<DamStuk>().HasData(new DamStuk {Id = 2, Kleur = Kleur.Zwart, Type = Type.Schijf });
+            modelBuilder.Entity<DamStuk>().HasData(new DamStuk {Id = 3, Kleur = Kleur.Wit, Type = Type.Dam });
+            modelBuilder.Entity<DamStuk>().HasData(new DamStuk {Id = 4, Kleur = Kleur.Zwart, Type = Type.Dam });
+        }
+
     }
 }

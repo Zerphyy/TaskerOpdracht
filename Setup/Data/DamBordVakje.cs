@@ -12,15 +12,15 @@ namespace Setup.Data
         public int Col { get; set; }
         [ForeignKey("DamStuk")]
         public int? DamStukId { get; set; }
-        public DamStuk DamStuk { get; set; }
+        [ForeignKey("DamBord")]
+        public int DamBordId { get; set; }
         public DamBordVakje()
         {
         }
-        public DamBordVakje(int row, int col, DamStuk stuk)
+        public DamBordVakje(int id, int row, int col)
         {
             this.Row = row;
             this.Col = col;
-            this.DamStuk = stuk;
         }
     }
 

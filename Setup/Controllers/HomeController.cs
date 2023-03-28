@@ -57,15 +57,21 @@ namespace Setup.Controllers
             var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
             var responseBody = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<RecaptchaResponse>(responseBody);
+            //result = recaptcha verifyen, modelState = eisen gesteld aan values in form
             if (!result.Success || !ModelState.IsValid)
             {
+                //wanneer 1 van de 2 niet correct is, view terug sturen en fouten aanpassen
                 return View(model);
             } else
             {
+                //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
+                //db connectie opzetten
                 using (var dbContext = new WebpageDBContext())
                 {
+                    //data toevoegen aan ContactData tabel
                     dbContext.ContactData.Add(model);
+                    //db opslaanS
                     dbContext.SaveChanges();
                 }
                     return RedirectToAction("Index");

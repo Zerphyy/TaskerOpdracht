@@ -4,15 +4,17 @@
     ViewData["Title"] = "Index";
 
 }
-<script src="~/js/testing.js" asp-append-version="true"></script>
-<h1>Index</h1>
-
+<h1>Alle games</h1>
+<h2>Hallo wereld</h2>
+<div>
+    <p data-cy="tweedeTekst">dit is een tweede tekst</p>
+</div>
 <table class="table">
-    <thead>Spel naam</thead>
-    <thead>Speler 1</thead>
-    <thead>Speler 2</thead>
-    <thead>Spel bekijken</thead>
-    <thead>Spelen</thead>
+    <th>Spel naam</th>
+    <th>Speler 1</th>
+    <th>Speler 2</th>
+    <th>Spel bekijken</th>
+    <th>Spelen</th>
     <tbody>
         @foreach (var spel in ViewBag.DamSpellen)
         {
@@ -25,18 +27,118 @@
                         <td>@speler.Naam</td>
                     }
                 }
+                @{
+                    var spelerGevonden = false;
+                    foreach (var speler in ViewBag.Spelers)
+                    {
+                        if (speler.ID == spel.DeelnemerId)
+                        {
+                            <td>@speler.Naam</td>
+                            spelerGevonden = true;
+                        }
+                    }
+                    if (!spelerGevonden)
+                    {
+                        <td>...</td>
+                    }
+                }
                 <td>
-                    <a asp-action="Edit" >Edit</a>
+                    <button>Bekijken</button>
                 </td>
                 <td>
-                    <a asp-action="Details">Details</a>
+                    <button>Meedoen</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+<hr />
+<form method="post" action="/Dammen/Spel">
+
+
+    <button value="submit"></button>
+</form>
 <div>
     <a asp-action="Create">Maak spel aan</a> |
     <a asp-action="Index">Back to List</a>
-    <button id="create-game-button" draggable="true">Create Game</button>
+    <button id="create-game-button">Create Game</button>
 </div>
+<hr />
+<h2>Jouw games</h2>
+<table class="table">
+    <th>Spel naam</th>
+    <th>Speler 1</th>
+    <th>Speler 2</th>
+    <th>Spel bekijken</th>
+    <th>Spelen</th>
+    <th>Verwijderen</th>
+    <tbody>
+        @foreach (var spel in ViewBag.DamSpellen)
+        {
+            @foreach (var speler in ViewBag.Spelers)
+            {
+                if (spel.CreatorId == speler.ID)
+                {
+                    <tr>
+                        <td>@spel.SpelNaam</td>
+                        <td>@speler.Naam</td>
+                        @{
+                            var spelerGevonden = false;
+                            foreach (var speler2 in ViewBag.Spelers)
+                            {
+                                if (speler2.ID == spel.DeelnemerId)
+                                {
+                                    <td>@speler.Naam</td>
+                                    spelerGevonden = true;
+                                }
+                            }
+                            if (!spelerGevonden)
+                            {
+                                <td>...</td>
+                            }
+                        }
+                        <td>
+                            <button>Bekijken</button>
+                        </td>
+                        <td>
+                            <button>Meedoen</button>
+                        </td>
+                        <td>
+                            <button>Verwijderen</button>
+                        </td>
+                    </tr>
+                }
+            }
+            @foreach(var vakje in ViewBag.DamBordVakjes)
+            {
+                if (vakje.DamBordId == spel.DamBordId)
+                {
+                    <td>
+                        @vakje.Row 
+                        @vakje.Col
+                        @if (vakje.DamStukId != null)
+                        {
+                            @vakje.DamStukId
+                        } else
+                        {
+                            <p>leeg vakje</p>
+                        }
+                    </td>
+                }
+            }
+            @*@if (spel.DamBordId != null)
+            {
+                @foreach (var vakje in spel.DamBord.DamBordVakjes)
+                {
+                    if (vakje.DamStukId != null)
+                    {
+                        <td>vakje.DamStuk.Kleur</td>
+                    }
+                }
+            }*@
+
+        }
+    </tbody>
+</table>
+@*putting scripts down here ensures all page information is loaded before scripts are executed*@
+<script src="~/js/testing.js" asp-append-version="true"></script>

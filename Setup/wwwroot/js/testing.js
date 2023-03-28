@@ -3,11 +3,11 @@
         console.log("hello");
     }
 }
-
-document.addEventListener('click', () => {
-    const createGameButton = document.querySelector('#create-game-button');
-    const t = new testing();
-    createGameButton.addEventListener('click', t.test);
+const createGameButton = document.querySelector('#create-game-button');
+const t = new testing();
+createGameButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    console.log("Button clicked!");
     createGameButton.innerHTML = "Test worked! :)";
 });
 

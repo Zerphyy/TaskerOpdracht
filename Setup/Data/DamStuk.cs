@@ -4,6 +4,7 @@ namespace Setup.Data
 {
     public class DamStuk
     {
+        [Key]
         public int Id { get; set; }
         [Required]
         public Kleur Kleur { get; set; }

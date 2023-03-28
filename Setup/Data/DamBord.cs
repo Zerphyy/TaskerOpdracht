@@ -5,32 +5,28 @@ namespace Setup.Data
     public class DamBord
     {
         public int Id { get; set; }
-        public List<DamBordVakje> DamBordVakjes { get; set; }
 
 
         public DamBord() { }
         public DamBord(int id)
         {
             this.Id = id;
-            DamBordVakjes = VulBord();
+            VulBord(id);
         }
 
-        private List<DamBordVakje> VulBord()
+        private void VulBord(int id)
         {
-            List<DamBordVakje> Vakjes = new List<DamBordVakje>(); // initialize the list
-                                                                                // add tuples representing the squares on the board
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
                 {
                     if ((row + col) % 2 == 0)
                     {
-                        if (row < 3) Vakjes.Add(new DamBordVakje(row, col, new DamStuk(Kleur.Wit, Type.Schijf))); // white piece
-                        else if (row > 4) Vakjes.Add(new DamBordVakje(row, col, new DamStuk(Kleur.Zwart, Type.Schijf))); // black piece
+                        if (row < 3) new DamBordVakje(Id = id, row, col); // white piece
+                        else if (row > 4) new DamBordVakje(Id = id, row, col); // black piece
                     }
                 }
             }
-            return Vakjes;
         }
     }
 }
