@@ -9,9 +9,13 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Setup.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -40,6 +44,11 @@ namespace Setup.Controllers
             //TODO: voeg recaptcha verificatie toe, maak form submitten mogelijk, etc.
             UpdatePageViewCookie();
             return View();
+        }
+        public async Task<IActionResult> LogOut()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Access");
         }
         [HttpPost]
         public async Task<IActionResult> Contact(Data.ContactData model)
