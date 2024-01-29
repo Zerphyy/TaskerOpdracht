@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Setup.Data;
+using System.Net.WebSockets;
 
 namespace Setup.Controllers
 {
@@ -42,10 +43,13 @@ namespace Setup.Controllers
         {
             using (var dbContext = new WebpageDBContext())
             {
-                dbContext.Add(new DamSpel(0, model.SpelNaam, null, 1, null, 1, false));
-                dbContext.Add(new Speler(0, "Kevin", "bestmail@email.com", "password124"));
-                dbContext.Add(new DamBord(0));
-                dbContext.SaveChanges();
+                Speler speler = new Speler(0, "Kevin1", "bestmail@email.com", "password124");
+                DatabaseSaving(speler, dbContext);
+                DamBord bord = new DamBord(0);
+                DatabaseSaving(bord, dbContext);
+                DamSpel spel = new DamSpel(0, model.SpelNaam, null, speler.ID, null, bord.Id, false);
+                DatabaseSaving(spel, dbContext);
+                
             }
             return RedirectToAction("Index");
         }
@@ -90,6 +94,11 @@ namespace Setup.Controllers
             {
                 return View();
             }
+        }
+        private void DatabaseSaving(object obj, WebpageDBContext context)
+        {
+                context.Add(obj);
+                context.SaveChanges();
         }
     }
 }

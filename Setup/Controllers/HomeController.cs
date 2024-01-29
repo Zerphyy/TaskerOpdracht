@@ -116,9 +116,9 @@ namespace Setup.Controllers
             //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             var apiKey = "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";
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
+            var from = new EmailAddress(email, naam);
             var subject = onderwerp;
-            var to = new EmailAddress(email, naam);
+            var to = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
             var plainTextContent = $"{bericht}, {contactOpnemen}, ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
             var htmlContent = $"<strong>{onderwerp}</strong> <br> {bericht} <br><br> {contactOpnemen} <br><br> ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
