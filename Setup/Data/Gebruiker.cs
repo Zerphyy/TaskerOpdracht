@@ -3,26 +3,28 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Setup.Data
 {
-    public class Speler
+    public class Gebruiker
     {
-        public int ID { get; set; }
+        [Required]
+        [EmailAddress]
+        [Key]
+        public string Email { get; set; }
         [Required]
         [MinLength(4)]
         public string Naam { get; set; }
+        
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-        [Required]
-        [PasswordPropertyText]
+        //hashed
         public string Wachtwoord { get; set; }
+        public string Rol { get; set; }
 
-        public Speler() { }
-        public Speler(int Id, string naam, string email, string wachtwoord)
+        public Gebruiker() { }
+        public Gebruiker(string naam, string email, string wachtwoord)
         {
-            this.ID = Id;
             this.Email = email;
             this.Naam = naam;
             this.Wachtwoord = wachtwoord;
+            Rol = "Gebruiker";
         }
     }
 }

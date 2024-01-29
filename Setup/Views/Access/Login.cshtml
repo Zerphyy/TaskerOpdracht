@@ -1,7 +1,4 @@
 ﻿@model Setup.Models.LoginModel;
-@{
-    Layout = null;
-}
 
 <!DOCTYPE html>
 
@@ -14,6 +11,7 @@
     <form asp-controller="Access" asp-action="Login" method="post">
         <h1>Login</h1>
         <input type="email" placeholder="Email" asp-for="Email"/>
+        <input type="text" placeholder="Username" asp-for="Username" />
         <input type="password" placeholder="Password" asp-for="Password" />
 
         <label>
@@ -30,5 +28,6 @@
         }
 
     </form>
+    <a class="nav-link text-dark" asp-area="" asp-controller="Access" asp-action="Register">Registreer</a>
 </body>
 </html>

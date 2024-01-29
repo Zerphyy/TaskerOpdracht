@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Components.Web.Virtualization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Setup.Data;
 using System.Net.WebSockets;
+using System.Security.Claims;
 
 namespace Setup.Controllers
 {
@@ -43,11 +45,9 @@ namespace Setup.Controllers
         {
             using (var dbContext = new WebpageDBContext())
             {
-                Speler speler = new Speler(0, "Kevin1", "bestmail@email.com", "password124");
-                DatabaseSaving(speler, dbContext);
                 DamBord bord = new DamBord(0);
                 DatabaseSaving(bord, dbContext);
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, speler.ID, null, bord.Id, false);
+                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
                 DatabaseSaving(spel, dbContext);
                 
             }

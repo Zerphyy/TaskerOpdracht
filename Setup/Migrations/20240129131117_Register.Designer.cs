@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Setup.Data;
 
@@ -11,9 +12,10 @@ using Setup.Data;
 namespace Setup.Migrations
 {
     [DbContext(typeof(WebpageDBContext))]
-    partial class WebpageDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240129131117_Register")]
+    partial class Register
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -307,15 +309,14 @@ namespace Setup.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Creator")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CreatorId")
+                        .HasColumnType("int");
 
                     b.Property<int>("DamBordId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Deelnemer")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("DeelnemerId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsSpelVoorbij")
                         .HasColumnType("bit");
@@ -324,8 +325,8 @@ namespace Setup.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Winnaar")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("WinnaarId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -379,8 +380,15 @@ namespace Setup.Migrations
 
             modelBuilder.Entity("Setup.Data.Gebruiker", b =>
                 {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Naam")
                         .IsRequired()
@@ -394,7 +402,7 @@ namespace Setup.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Email");
+                    b.HasKey("ID");
 
                     b.ToTable("Speler");
                 });
@@ -419,15 +427,15 @@ namespace Setup.Migrations
                     b.Property<int>("LangsteWinstreak")
                         .HasColumnType("int");
 
-                    b.Property<string>("SpelerEmail")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("SpelerID")
+                        .HasColumnType("int");
 
                     b.Property<int>("WinLossRatio")
                         .HasColumnType("int");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("SpelerEmail");
+                    b.HasIndex("SpelerID");
 
                     b.ToTable("SpelerStats");
                 });
@@ -487,7 +495,9 @@ namespace Setup.Migrations
                 {
                     b.HasOne("Setup.Data.Gebruiker", "Speler")
                         .WithMany()
-                        .HasForeignKey("SpelerEmail");
+                        .HasForeignKey("SpelerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Speler");
                 });

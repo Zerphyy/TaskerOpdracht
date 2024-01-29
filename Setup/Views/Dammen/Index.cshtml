@@ -1,4 +1,6 @@
-﻿@model IEnumerable<Setup.Data.DamSpel>
+﻿@using System.Security.Claims;
+@using Setup.Data;
+@model IEnumerable<Setup.Data.DamSpel>
 
 @{
     ViewData["Title"] = "Index";
@@ -22,7 +24,7 @@
                 <td>@spel.SpelNaam</td>
                 @foreach (var speler in ViewBag.Spelers)
                 {
-                    if (speler.ID == spel.CreatorId)
+                    if (speler.Email == spel.Creator)
                     {
                         <td>@speler.Naam</td>
                     }
@@ -31,7 +33,7 @@
                     var spelerGevonden = false;
                     foreach (var speler in ViewBag.Spelers)
                     {
-                        if (speler.ID == spel.DeelnemerId)
+                        if (speler.Email == spel.Deelnemer)
                         {
                             <td>@speler.Naam</td>
                             spelerGevonden = true;
@@ -75,67 +77,74 @@
     <tbody>
         @foreach (var spel in ViewBag.DamSpellen)
         {
-            @foreach (var speler in ViewBag.Spelers)
+            if (spel.Creator == User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
-                if (spel.CreatorId == speler.ID)
+                string naam = "";
+                using (var dbContext = new WebpageDBContext())
                 {
-                    <tr>
-                        <td>@spel.SpelNaam</td>
-                        <td>@speler.Naam</td>
-                        @{
-                            var spelerGevonden = false;
-                            foreach (var speler2 in ViewBag.Spelers)
+                    naam = dbContext.Speler.Find(spel.Creator).Naam;
+                    if (naam.Equals(String.Empty))
+                    {
+                        naam = "";
+                    }
+                }
+                <tr>
+                    <td>@spel.SpelNaam</td>
+                    <td>@naam</td>
+                    @{
+                        var spelerGevonden = false;
+                        foreach (var speler2 in ViewBag.Spelers)
+                        {
+                            if (speler2.Email == spel.Deelnemer)
                             {
-                                if (speler2.ID == spel.DeelnemerId)
-                                {
-                                    <td>@speler.Naam</td>
-                                    spelerGevonden = true;
-                                }
-                            }
-                            if (!spelerGevonden)
-                            {
-                                <td>...</td>
+                                <td>@speler2.Naam</td>
+                                spelerGevonden = true;
                             }
                         }
-                        <td>
-                            <button>Bekijken</button>
-                        </td>
-                        <td>
-                            <button>Meedoen</button>
-                        </td>
-                        <td>
-                            <button>Verwijderen</button>
-                        </td>
-                    </tr>
-                }
+                        if (!spelerGevonden)
+                        {
+                            <td>...</td>
+                        }
+                    }
+                    <td>
+                        <button>Bekijken</button>
+                    </td>
+                    <td>
+                        <button>Meedoen</button>
+                    </td>
+                    <td>
+                        <button>Verwijderen</button>
+                    </td>
+                </tr>
             }
-            @foreach(var vakje in ViewBag.DamBordVakjes)
+            @foreach (var vakje in ViewBag.DamBordVakjes)
             {
                 if (vakje.DamBordId == spel.DamBordId)
                 {
-                    <td>
-                        @vakje.Row 
+                <td>
+                        @vakje.Row
                         @vakje.Col
                         @if (vakje.DamStukId != null)
                         {
                             @vakje.DamStukId
-                        } else
-                        {
-                            <p>leeg vakje</p>
                         }
-                    </td>
+                        else
+                        {
+                        <p>leeg vakje</p>
+                        }
+                </td>
                 }
             }
             @*@if (spel.DamBordId != null)
-            {
-                @foreach (var vakje in spel.DamBord.DamBordVakjes)
-                {
-                    if (vakje.DamStukId != null)
-                    {
-                        <td>vakje.DamStuk.Kleur</td>
-                    }
-                }
-            }*@
+    {
+    @foreach (var vakje in spel.DamBord.DamBordVakjes)
+    {
+    if (vakje.DamStukId != null)
+    {
+    <td>vakje.DamStuk.Kleur</td>
+    }
+    }
+    }*@
 
         }
     </tbody>
