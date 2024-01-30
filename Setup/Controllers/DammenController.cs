@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Setup.Data;
 using System.Net.WebSockets;
 using System.Security.Claims;
 
 namespace Setup.Controllers
 {
+    [Controller]
     public class DammenController : Controller
     {
         // GET: DammenController
@@ -22,9 +24,19 @@ namespace Setup.Controllers
             ViewBag.DamBordVakjes = damBordVakjes;
             return View();
         }
-        public ActionResult Spel()
+        public ActionResult Spel(int id)
         {
-            return View("View");
+            using (var context = new WebpageDBContext())
+            {
+                DamSpel damSpel = context.DamSpel.Find(id);
+                if (damSpel != null)
+                {
+                    return View(damSpel);
+                } else
+                {
+                    return RedirectToAction("Index");
+                }
+            }
         }
 
         // GET: DammenController/Details/5
@@ -46,10 +58,10 @@ namespace Setup.Controllers
             using (var dbContext = new WebpageDBContext())
             {
                 DamBord bord = new DamBord(0);
-                DatabaseSaving(bord, dbContext);
+                DatabaseSaving(bord, dbContext, "Add");
                 DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
-                DatabaseSaving(spel, dbContext);
-                
+                DatabaseSaving(spel, dbContext, "Add");
+
             }
             return RedirectToAction("Index");
         }
@@ -95,10 +107,63 @@ namespace Setup.Controllers
                 return View();
             }
         }
-        private void DatabaseSaving(object obj, WebpageDBContext context)
+        private void DatabaseSaving(object obj, WebpageDBContext context, string type)
         {
+            if (type.Equals("Add"))
+            {
                 context.Add(obj);
                 context.SaveChanges();
+            }
+            if (type.Equals("Update"))
+            {
+                context.Update(obj);
+                context.SaveChanges();
+            }
         }
+        [HttpPost]
+        public async Task<IActionResult> AddPlayerToGame(GameData gameData)
+        {
+            var speler1 = gameData?.Speler1;
+            var speler2 = gameData?.Speler2;
+            var spel = gameData?.DamSpel;
+
+            if (speler1 != null && speler2 != null && spel != null)
+            {
+                if (speler1.ToString().Equals(speler2.ToString()))
+                {
+                    return Json(new { success = false, message = "Je kan niet je eigen game joinen!" });
+                }
+                if (speler1 != null && spel.Deelnemer != null)
+                {
+                    if (speler1 == speler2 || spel.Deelnemer == speler2)
+                    {
+                        return Json(new { success = false, message = "Je zit al in deze game!" });
+                    }
+                    return Json(new { success = false, message = "Deze game zit al vol!" });
+                }
+                using (var context = new WebpageDBContext())
+                {
+                    DamSpel damSpel = context.DamSpel.Find(spel.Id);
+                    damSpel.Deelnemer = speler2;
+                    DatabaseSaving(damSpel, context, "Update");
+
+                    return Json(new { success = true, id = spel.Id });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = "Oeps! Er ging iets mis!" });
+            }
+        }
+
+    }
+    public class GameData
+    {
+        //Player object
+        public string? Speler1 { get; set; }
+        //Player email identifier
+        public string? Speler2 { get; set; }
+        //Game identifier
+        public DamSpel? DamSpel { get; set; }
     }
 }

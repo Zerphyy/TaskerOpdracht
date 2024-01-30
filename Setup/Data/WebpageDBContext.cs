@@ -16,6 +16,12 @@ namespace Setup.Data
         public DbSet<Gebruiker> Speler { get; set; }
         public DbSet<GebruikerStats> SpelerStats { get; set; }
 
+        public WebpageDBContext(DbContextOptions<WebpageDBContext> options) : base(options)
+        {
+        }
+        public WebpageDBContext()
+        {
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

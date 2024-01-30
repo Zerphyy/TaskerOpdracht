@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Setup.Models;
 using Microsoft.CodeAnalysis.Scripting;
 using Setup.Data;
+using Newtonsoft.Json;
 
 namespace Setup.Controllers
 {
@@ -45,7 +46,7 @@ namespace Setup.Controllers
 
                         AuthenticationProperties properties = new AuthenticationProperties()
                         {
-                            AllowRefresh = true,
+                            AllowRefresh = false,
                             IsPersistent = loginModel.StayLoggedIn
                         };
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,

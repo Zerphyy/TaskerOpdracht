@@ -1,5 +1,6 @@
 ﻿@using System.Security.Claims;
 @using Setup.Data;
+@using Microsoft.AspNetCore.Mvc.ViewFeatures;
 @model IEnumerable<Setup.Data.DamSpel>
 
 @{
@@ -11,6 +12,9 @@
 <div>
     <p data-cy="tweedeTekst">dit is een tweede tekst</p>
 </div>
+    <div id="error__message">
+        
+    </div>
 <table class="table">
     <th>Spel naam</th>
     <th>Speler 1</th>
@@ -48,18 +52,13 @@
                     <button>Bekijken</button>
                 </td>
                 <td>
-                    <button>Meedoen</button>
+                    <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel)), event'>Meedoen</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 <hr />
-<form method="post" action="/Dammen/Spel">
-
-
-    <button value="submit"></button>
-</form>
 <div>
     <a asp-action="Create">Maak spel aan</a> |
     <a asp-action="Index">Back to List</a>
@@ -110,7 +109,7 @@
                         <button>Bekijken</button>
                     </td>
                     <td>
-                        <button>Meedoen</button>
+                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
                     </td>
                     <td>
                         <button>Verwijderen</button>
@@ -151,3 +150,4 @@
 </table>
 @*putting scripts down here ensures all page information is loaded before scripts are executed*@
 <script src="~/js/testing.js" asp-append-version="true"></script>
+<script src="~/js/Dammen.js" asp-append-version="true"></script>
