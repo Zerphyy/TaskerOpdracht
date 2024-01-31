@@ -15,12 +15,32 @@
                 window.location.href = "/Dammen/Spel/" + result.id;
             } else {
                 document.querySelector('#error__message').innerHTML = result.message;
-                
             }
         },
         error: function (error) {
             console.error('Error:', error);
         }
     });
+    event.preventDefault();
+}
+
+function RemoveGame(id, event) {
+    $.ajax({
+        url: '/Dammen/Delete',
+        method: 'POST',
+        dataType: 'json',
+        data: {
+            id: id
+        },
+        success: function (result) {
+            if (result.success) {
+            } else {
+                document.querySelector('#error__message').innerHTML = result.message;
+            }
+        },
+        error: function (error) {
+            console.error('Error:', error);
+        }
+    })
     event.preventDefault();
 }

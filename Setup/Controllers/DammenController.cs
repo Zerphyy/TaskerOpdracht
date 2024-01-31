@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
 using Setup.Data;
-using System.Net.WebSockets;
 using System.Security.Claims;
 
 namespace Setup.Controllers
@@ -16,9 +11,9 @@ namespace Setup.Controllers
         public ActionResult Index()
         {
             var dbContext = new WebpageDBContext();
-            var damSpellen = dbContext.DamSpel.ToList();
-            var spelers = dbContext.Speler.ToList();
-            var damBordVakjes = dbContext.DamBordVakje.ToList();
+            var damSpellen = dbContext.DamSpel?.ToList();
+            var spelers = dbContext.Speler?.ToList();
+            var damBordVakjes = dbContext.DamBordVakje?.ToList();
             ViewBag.Spelers = spelers;
             ViewBag.DamSpellen = damSpellen;
             ViewBag.DamBordVakjes = damBordVakjes;
@@ -28,7 +23,7 @@ namespace Setup.Controllers
         {
             using (var context = new WebpageDBContext())
             {
-                DamSpel damSpel = context.DamSpel.Find(id);
+                DamSpel? damSpel = context.DamSpel?.Find(id);
                 if (damSpel != null)
                 {
                     return View(damSpel);
@@ -53,7 +48,7 @@ namespace Setup.Controllers
 
         // POST: DammenController/Create
         [HttpPost]
-        public ActionResult Create(Data.DamSpel? model)
+        public ActionResult Create(DamSpel model)
         {
             using (var dbContext = new WebpageDBContext())
             {
@@ -87,41 +82,39 @@ namespace Setup.Controllers
             }
         }
 
-        // GET: DammenController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: DammenController/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public IActionResult Delete(int id)
         {
-            try
+            using (var dbContext = new WebpageDBContext())
             {
-                return RedirectToAction(nameof(Index));
+                DamSpel? spel = dbContext.DamSpel?.Find(id);
+                if (spel == null)
+                {
+                    return Json(new { success = false, message = "Spel kon niet worden gevonden." });
+                }
+                DatabaseSaving(spel, dbContext, "Remove");
             }
-            catch
-            {
-                return View();
-            }
+            return Json(new { success = true });
         }
         private void DatabaseSaving(object obj, WebpageDBContext context, string type)
         {
-            if (type.Equals("Add"))
-            {
-                context.Add(obj);
-                context.SaveChanges();
-            }
-            if (type.Equals("Update"))
-            {
-                context.Update(obj);
-                context.SaveChanges();
+            switch (type) {
+                case "Add":
+                    context.Add(obj);
+                    context.SaveChanges();
+                    break;
+                case "Update":
+                    context.Update(obj);
+                    context.SaveChanges();
+                    break;
+                case "Remove":
+                    context.Remove(obj);
+                    context.SaveChanges();
+                    break;
             }
         }
         [HttpPost]
-        public async Task<IActionResult> AddPlayerToGame(GameData gameData)
+        public IActionResult AddPlayerToGame(GameData gameData)
         {
             var speler1 = gameData?.Speler1;
             var speler2 = gameData?.Speler2;
@@ -143,11 +136,16 @@ namespace Setup.Controllers
                 }
                 using (var context = new WebpageDBContext())
                 {
-                    DamSpel damSpel = context.DamSpel.Find(spel.Id);
-                    damSpel.Deelnemer = speler2;
-                    DatabaseSaving(damSpel, context, "Update");
-
-                    return Json(new { success = true, id = spel.Id });
+                    DamSpel? damSpel = context.DamSpel?.Find(spel.Id);
+                    if (damSpel != null)
+                    {
+                        damSpel.Deelnemer = speler2;
+                        DatabaseSaving(damSpel, context, "Update");
+                        return Json(new { success = true, id = spel.Id });
+                    } else
+                    {
+                        return Json(new { success = false, message = "Dit spel kon niet gevonden worden." });
+                    }
                 }
             }
             else

@@ -8,13 +8,13 @@ namespace Setup.Data
 {
     public class WebpageDBContext:IdentityDbContext
     {
-        public DbSet<ContactData> ContactData { get; set; }
-        public DbSet<DamSpel> DamSpel { get; set; }
-        public DbSet<DamBord> DamBord { get; set; }
-        public DbSet<DamBordVakje> DamBordVakje { get; set; }
-        public DbSet<DamStuk> DamStuk { get; set; }
-        public DbSet<Gebruiker> Speler { get; set; }
-        public DbSet<GebruikerStats> SpelerStats { get; set; }
+        public DbSet<ContactData>? ContactData { get; set; }
+        public DbSet<DamSpel>? DamSpel { get; set; }
+        public DbSet<DamBord>? DamBord { get; set; }
+        public DbSet<DamBordVakje>? DamBordVakje { get; set; }
+        public DbSet<DamStuk>? DamStuk { get; set; }
+        public DbSet<Gebruiker>? Speler { get; set; }
+        public DbSet<GebruikerStats>? SpelerStats { get; set; }
 
         public WebpageDBContext(DbContextOptions<WebpageDBContext> options) : base(options)
         {

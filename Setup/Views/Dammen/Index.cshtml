@@ -109,42 +109,14 @@
                         <button>Bekijken</button>
                     </td>
                     <td>
-                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
+                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel), event)'>Meedoen</button>
                     </td>
                     <td>
-                        <button>Verwijderen</button>
+                        <button onclick='RemoveGame(@Json.Serialize(spel.Id), event)'>Verwijderen</button>
                     </td>
                 </tr>
             }
-            @foreach (var vakje in ViewBag.DamBordVakjes)
-            {
-                if (vakje.DamBordId == spel.DamBordId)
-                {
-                <td>
-                        @vakje.Row
-                        @vakje.Col
-                        @if (vakje.DamStukId != null)
-                        {
-                            @vakje.DamStukId
-                        }
-                        else
-                        {
-                        <p>leeg vakje</p>
-                        }
-                </td>
-                }
-            }
-            @*@if (spel.DamBordId != null)
-    {
-    @foreach (var vakje in spel.DamBord.DamBordVakjes)
-    {
-    if (vakje.DamStukId != null)
-    {
-    <td>vakje.DamStuk.Kleur</td>
-    }
-    }
-    }*@
-
+            
         }
     </tbody>
 </table>
