@@ -49,7 +49,7 @@
                     }
                 }
                 <td>
-                    <button>Bekijken</button>
+                    <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
                 </td>
                 <td>
                     <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel)), event'>Meedoen</button>
@@ -106,10 +106,10 @@
                         }
                     }
                     <td>
-                        <button>Bekijken</button>
+                        <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
                     </td>
                     <td>
-                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel), event)'>Meedoen</button>
+                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
                     </td>
                     <td>
                         <button onclick='RemoveGame(@Json.Serialize(spel.Id), event)'>Verwijderen</button>
@@ -120,6 +120,9 @@
         }
     </tbody>
 </table>
+
 @*putting scripts down here ensures all page information is loaded before scripts are executed*@
 <script src="~/js/testing.js" asp-append-version="true"></script>
 <script src="~/js/Dammen.js" asp-append-version="true"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.10/signalr.min.js"></script>

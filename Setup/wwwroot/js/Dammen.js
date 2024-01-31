@@ -1,4 +1,25 @@
-﻿function AddPlayerToGame(speler1, speler2, spel, event) {
+﻿var connection;
+document.addEventListener('DOMContentLoaded', function () {
+
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl("/gameHub")
+        .build();
+        
+    connection.on("GameChanged", function () {
+        location.reload();
+    });
+
+    connection.start().then(function () {
+        console.log("SignalR Connected");
+    });
+});
+function reloadPage() {
+    connection.invoke("SendMessage").catch(function (err) {
+        console.error(err.toString());
+    });
+}
+
+function AddPlayerToGame(speler1, speler2, spel) {
     $.ajax({
         url: '/Dammen/AddPlayerToGame',
         method: 'POST',
@@ -12,7 +33,9 @@
         },
         success: function (result) {
             if (result.success) {
-                window.location.href = "/Dammen/Spel/" + result.id;
+                connection.invoke("NotifyGameChanged").catch(function (err) {
+                    console.error(err.toString());
+                });
             } else {
                 document.querySelector('#error__message').innerHTML = result.message;
             }
@@ -21,7 +44,6 @@
             console.error('Error:', error);
         }
     });
-    event.preventDefault();
 }
 
 function RemoveGame(id, event) {
@@ -34,6 +56,9 @@ function RemoveGame(id, event) {
         },
         success: function (result) {
             if (result.success) {
+                connection.invoke("NotifyGameChanged").catch(function (err) {
+                    console.error(err.toString());
+                });
             } else {
                 document.querySelector('#error__message').innerHTML = result.message;
             }

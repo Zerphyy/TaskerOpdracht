@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Setup.Data;
+using Setup.Hubs;
 using System.Configuration;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
@@ -58,6 +59,7 @@ void ConfigureServices(IServiceCollection services)
             options.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
         }
     });
+    services.AddSignalR();
     services.AddControllers();
 }
 
@@ -71,6 +73,7 @@ app.UseAuthorization();
 
 app.UseSession();
 
+app.MapHub<GameHub>("/gameHub");
 app.MapControllerRoute(
 name: "default",
 pattern: "{controller=Home}/{action=Index}/{id?}");
