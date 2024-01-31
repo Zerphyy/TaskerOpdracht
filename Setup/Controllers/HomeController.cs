@@ -5,14 +5,10 @@ using SendGrid;
 using Setup.Data;
 using Setup.Models;
 using System.Diagnostics;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace Setup.Controllers
 {

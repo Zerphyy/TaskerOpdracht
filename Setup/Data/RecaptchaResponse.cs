@@ -8,6 +8,6 @@ namespace Setup.Data
         public bool Success { get; set; }
 
         [JsonProperty("error-codes")]
-        public List<string> ErrorCodes { get; set; }
+        public List<string>? ErrorCodes { get; set; }
     }
 }

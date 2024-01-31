@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Setup.Data
+﻿namespace Setup.Data
 {
     public class DamBord
     {

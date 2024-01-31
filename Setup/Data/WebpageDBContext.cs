@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Xml;
 
 namespace Setup.Data
 {
