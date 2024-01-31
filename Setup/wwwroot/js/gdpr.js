@@ -20,7 +20,6 @@
             this.cookieStatus('reject');
             this.hideGDPR();
         });
-
     }
 
 

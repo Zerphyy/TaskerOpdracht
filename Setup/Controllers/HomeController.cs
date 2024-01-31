@@ -9,9 +9,14 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Setup.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -41,6 +46,11 @@ namespace Setup.Controllers
             UpdatePageViewCookie();
             return View();
         }
+        public async Task<IActionResult> LogOut()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Access");
+        }
         [HttpPost]
         public async Task<IActionResult> Contact(Data.ContactData model)
         {
@@ -57,15 +67,21 @@ namespace Setup.Controllers
             var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
             var responseBody = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<RecaptchaResponse>(responseBody);
+            //result = recaptcha verifyen, modelState = eisen gesteld aan values in form
             if (!result.Success || !ModelState.IsValid)
             {
+                //wanneer 1 van de 2 niet correct is, view terug sturen en fouten aanpassen
                 return View(model);
             } else
             {
+                //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
-                using (var dbContext = new ContactDataDBContext())
+                //db connectie opzetten
+                using (var dbContext = new WebpageDBContext())
                 {
+                    //data toevoegen aan ContactData tabel
                     dbContext.ContactData.Add(model);
+                    //db opslaanS
                     dbContext.SaveChanges();
                 }
                     return RedirectToAction("Index");
@@ -110,9 +126,9 @@ namespace Setup.Controllers
             //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             var apiKey = "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";
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
+            var from = new EmailAddress(email, naam);
             var subject = onderwerp;
-            var to = new EmailAddress(email, naam);
+            var to = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
             var plainTextContent = $"{bericht}, {contactOpnemen}, ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
             var htmlContent = $"<strong>{onderwerp}</strong> <br> {bericht} <br><br> {contactOpnemen} <br><br> ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);

@@ -1,0 +1,128 @@
+﻿@using System.Security.Claims;
+@using Setup.Data;
+@using Microsoft.AspNetCore.Mvc.ViewFeatures;
+@model IEnumerable<Setup.Data.DamSpel>
+
+@{
+    ViewData["Title"] = "Index";
+
+}
+<h1>Alle games</h1>
+<h2>Hallo wereld</h2>
+<div>
+    <p data-cy="tweedeTekst">dit is een tweede tekst</p>
+</div>
+    <div id="error__message">
+        
+    </div>
+<table class="table">
+    <th>Spel naam</th>
+    <th>Speler 1</th>
+    <th>Speler 2</th>
+    <th>Spel bekijken</th>
+    <th>Spelen</th>
+    <tbody>
+        @foreach (var spel in ViewBag.DamSpellen)
+        {
+            <tr>
+                <td>@spel.SpelNaam</td>
+                @foreach (var speler in ViewBag.Spelers)
+                {
+                    if (speler.Email == spel.Creator)
+                    {
+                        <td>@speler.Naam</td>
+                    }
+                }
+                @{
+                    var spelerGevonden = false;
+                    foreach (var speler in ViewBag.Spelers)
+                    {
+                        if (speler.Email == spel.Deelnemer)
+                        {
+                            <td>@speler.Naam</td>
+                            spelerGevonden = true;
+                        }
+                    }
+                    if (!spelerGevonden)
+                    {
+                        <td>...</td>
+                    }
+                }
+                <td>
+                    <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
+                </td>
+                <td>
+                    <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel)), event'>Meedoen</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<hr />
+<div>
+    <a asp-action="Create">Maak spel aan</a> |
+    <a asp-action="Index">Back to List</a>
+    <button id="create-game-button">Create Game</button>
+</div>
+<hr />
+<h2>Jouw games</h2>
+<table class="table">
+    <th>Spel naam</th>
+    <th>Speler 1</th>
+    <th>Speler 2</th>
+    <th>Spel bekijken</th>
+    <th>Spelen</th>
+    <th>Verwijderen</th>
+    <tbody>
+        @foreach (var spel in ViewBag.DamSpellen)
+        {
+            if (spel.Creator == User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                string naam = "";
+                using (var dbContext = new WebpageDBContext())
+                {
+                    naam = dbContext.Speler.Find(spel.Creator).Naam;
+                    if (naam.Equals(String.Empty))
+                    {
+                        naam = "";
+                    }
+                }
+                <tr>
+                    <td>@spel.SpelNaam</td>
+                    <td>@naam</td>
+                    @{
+                        var spelerGevonden = false;
+                        foreach (var speler2 in ViewBag.Spelers)
+                        {
+                            if (speler2.Email == spel.Deelnemer)
+                            {
+                                <td>@speler2.Naam</td>
+                                spelerGevonden = true;
+                            }
+                        }
+                        if (!spelerGevonden)
+                        {
+                            <td>...</td>
+                        }
+                    }
+                    <td>
+                        <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
+                    </td>
+                    <td>
+                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
+                    </td>
+                    <td>
+                        <button onclick='RemoveGame(@Json.Serialize(spel.Id), event)'>Verwijderen</button>
+                    </td>
+                </tr>
+            }
+            
+        }
+    </tbody>
+</table>
+
+@*putting scripts down here ensures all page information is loaded before scripts are executed*@
+<script src="~/js/testing.js" asp-append-version="true"></script>
+<script src="~/js/Dammen.js" asp-append-version="true"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.10/signalr.min.js"></script>

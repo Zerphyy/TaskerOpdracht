@@ -1,6 +1,26 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Setup.Data;
+using Setup.Hubs;
+using System.Configuration;
+using System.Runtime.InteropServices;
+using System.Security.Claims;
+using System.Text;
+bool staysLoggedIn = false;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+ConfigureServices(builder.Services);
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(option =>
+    {
+        option.LoginPath = "/Access/Login";
+        option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+    });
+
+
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 builder.Services.AddDistributedMemoryCache();
@@ -11,9 +31,12 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    //kijk hier naar V
+    //options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -23,17 +46,36 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<WebpageDBContext>(options =>
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=TaskerOpdrachtDb;Trusted_Connection=True;");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            options.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
+        }
+    });
+    services.AddSignalR();
+    services.AddControllers();
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.UseSession();
 
+app.MapHub<GameHub>("/gameHub");
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+name: "default",
+pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
