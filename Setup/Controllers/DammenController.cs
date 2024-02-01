@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Setup.Data;
 using System.Security.Claims;
 
@@ -13,10 +14,8 @@ namespace Setup.Controllers
             var dbContext = new WebpageDBContext();
             var damSpellen = dbContext.DamSpel?.ToList();
             var spelers = dbContext.Speler?.ToList();
-            var damBordVakjes = dbContext.DamBordVakje?.ToList();
             ViewBag.Spelers = spelers;
             ViewBag.DamSpellen = damSpellen;
-            ViewBag.DamBordVakjes = damBordVakjes;
             return View();
         }
         public ActionResult Spel(int id)
@@ -27,7 +26,8 @@ namespace Setup.Controllers
                 if (damSpel != null)
                 {
                     return View(damSpel);
-                } else
+                }
+                else
                 {
                     return RedirectToAction("Index");
                 }
@@ -83,22 +83,23 @@ namespace Setup.Controllers
         }
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete( DamSpel spel)
         {
             using (var dbContext = new WebpageDBContext())
             {
-                DamSpel? spel = dbContext.DamSpel?.Find(id);
-                if (spel == null)
+                DamSpel? damSpel = dbContext.DamSpel?.Find(spel.Id);
+                if (damSpel == null)
                 {
                     return Json(new { success = false, message = "Spel kon niet worden gevonden." });
                 }
-                DatabaseSaving(spel, dbContext, "Remove");
+                DatabaseSaving(damSpel, dbContext, "Remove");
             }
             return Json(new { success = true });
         }
         private void DatabaseSaving(object obj, WebpageDBContext context, string type)
         {
-            switch (type) {
+            switch (type)
+            {
                 case "Add":
                     context.Add(obj);
                     context.SaveChanges();
@@ -142,7 +143,8 @@ namespace Setup.Controllers
                         damSpel.Deelnemer = speler2;
                         DatabaseSaving(damSpel, context, "Update");
                         return Json(new { success = true, id = spel.Id });
-                    } else
+                    }
+                    else
                     {
                         return Json(new { success = false, message = "Dit spel kon niet gevonden worden." });
                     }
@@ -153,7 +155,21 @@ namespace Setup.Controllers
                 return Json(new { success = false, message = "Oeps! Er ging iets mis!" });
             }
         }
-
+        [HttpGet]
+        public IActionResult GetGameLijst()
+        {
+            var dbContext = new WebpageDBContext();
+            var damSpellen = dbContext.DamSpel?.ToList();
+            var spelers = dbContext.Speler?.ToList();
+            var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var lijstData = new Dictionary<string, object?>
+        {
+            { "Spellen", damSpellen },
+            { "Spelers",  spelers },
+            { "Gebruiker", gebruiker}
+        };
+            return Json(lijstData);
+        }
     }
     public class GameData
     {

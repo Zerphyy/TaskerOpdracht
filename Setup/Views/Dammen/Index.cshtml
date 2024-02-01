@@ -21,7 +21,7 @@
     <th>Speler 2</th>
     <th>Spel bekijken</th>
     <th>Spelen</th>
-    <tbody>
+    <tbody id="game__lijst">
         @foreach (var spel in ViewBag.DamSpellen)
         {
             <tr>
@@ -73,7 +73,7 @@
     <th>Spel bekijken</th>
     <th>Spelen</th>
     <th>Verwijderen</th>
-    <tbody>
+    <tbody id="eigen__game__lijst">
         @foreach (var spel in ViewBag.DamSpellen)
         {
             if (spel.Creator == User.FindFirstValue(ClaimTypes.NameIdentifier))
@@ -112,7 +112,7 @@
                         <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
                     </td>
                     <td>
-                        <button onclick='RemoveGame(@Json.Serialize(spel.Id), event)'>Verwijderen</button>
+                        <button onclick='RemoveGame(@Json.Serialize(spel))'>Verwijderen</button>
                     </td>
                 </tr>
             }
