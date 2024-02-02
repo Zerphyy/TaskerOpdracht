@@ -66,62 +66,15 @@ function RemoveGame(spel) {
     })
 }
 function CreateTablePartials(data) {
-    CreateTablePartialGeneral(data);
-    CreateTablePartialPersonal(data);
-}
-function CreateTablePartialPersonal(data) {
-    var eigenLijst = document.querySelector('#eigen__game__lijst');
-    
-    eigenLijst.innerHTML = '';
-
+    document.querySelector('#game__lijst').innerHTML = '';
+    document.querySelector('#eigen__game__lijst').innerHTML = '';
     for (var spel of data.Spellen) {
-
-        var rij = document.createElement('tr');
-
-        var spelNaam = document.createElement('td');
-        var maker = document.createElement('td');
-        var deelnemer = document.createElement('td');
-        var bekijken = document.createElement('a');
-        var bekijkentd = document.createElement('td');
-        var meedoen = document.createElement('button');
-        var meedoentd = document.createElement('td');
-        var verwijderen = document.createElement('button');
-        var verwijderentd = document.createElement('td');
-
-        spelNaam.innerHTML = spel.spelNaam;
-
-
-        maker.innerHTML = '...';
-        deelnemer.innerHTML = '...';
-        for (var speler of data.Spelers) {
-            if (speler.email === spel.creator) {
-                maker.innerHTML = speler.naam;
-            }
-            if (speler.email === spel.deelnemer) {
-                deelnemer.innerHTML = speler.naam;
-            }
-        }
-
-        bekijken.href = '/Dammen/Spel/' + spel.id;
-        bekijken.innerHTML = 'Bekijken';
-        bekijkentd.appendChild(bekijken);
-
-        meedoen.onclick = (function (currentSpel) {
-            return function () {
-                AddPlayerToGame(currentSpel.creator, data.Gebruiker, currentSpel);
-            };
-        })(spel);
-        meedoen.innerHTML = 'Meedoen';
-        meedoentd.appendChild(meedoen);
-
-
-
-        rij.appendChild(spelNaam);
-        rij.appendChild(maker);
-        rij.appendChild(deelnemer);
-        rij.appendChild(bekijkentd);
-        rij.appendChild(meedoentd);
+        var genericRij = CreateTablePartialData(spel, data.Spelers, data.Gebruiker);
+        var eigenRij = CreateTablePartialData(spel, data.Spelers, data.Gebruiker);
+        document.querySelector('#game__lijst').appendChild(genericRij);
         if (spel.creator === data.Gebruiker) {
+            var verwijderentd = document.createElement('td');
+            var verwijderen = document.createElement('button');
             verwijderen.onclick = (function (currentSpel) {
                 return function () {
                     RemoveGame(currentSpel);
@@ -129,64 +82,58 @@ function CreateTablePartialPersonal(data) {
             })(spel);
             verwijderen.innerHTML = 'verwijderen';
             verwijderentd.appendChild(verwijderen);
-            rij.appendChild(verwijderentd);
-            eigenLijst.appendChild(rij);
+            eigenRij.appendChild(verwijderentd);
+            document.querySelector('#eigen__game__lijst').appendChild(eigenRij);
         }
     }
 }
-function CreateTablePartialGeneral(data) {
-    var algemeneLijst = document.querySelector('#game__lijst');
-    
-    algemeneLijst.innerHTML = '';
+function CreateTablePartialData(spel, spelers, gebruiker) {
+    var rij = document.createElement('tr');
 
-    for (var spel of data.Spellen) {
+    var spelNaam = document.createElement('td');
+    var maker = document.createElement('td');
+    var deelnemer = document.createElement('td');
+    var bekijken = document.createElement('a');
+    var bekijkentd = document.createElement('td');
+    var meedoen = document.createElement('button');
+    var meedoentd = document.createElement('td');
 
-        var rij = document.createElement('tr');
-
-        var spelNaam = document.createElement('td');
-        var maker = document.createElement('td');
-        var deelnemer = document.createElement('td');
-        var bekijken = document.createElement('a');
-        var bekijkentd = document.createElement('td');
-        var meedoen = document.createElement('button');
-        var meedoentd = document.createElement('td');
-
-        spelNaam.innerHTML = spel.spelNaam;
+    spelNaam.innerHTML = spel.spelNaam;
 
 
-        maker.innerHTML = '...';
-        deelnemer.innerHTML = '...';
-        for (var speler of data.Spelers) {
-            if (speler.email === spel.creator) {
-                maker.innerHTML = speler.naam;
-            }
-            if (speler.email === spel.deelnemer) {
-                deelnemer.innerHTML = speler.naam;
-            }
+    maker.innerHTML = '...';
+    deelnemer.innerHTML = '...';
+    for (var speler of spelers) {
+        if (speler.email === spel.creator) {
+            maker.innerHTML = speler.naam;
         }
-
-        bekijken.href = '/Dammen/Spel/' + spel.id;
-        bekijken.innerHTML = 'Bekijken';
-        bekijkentd.appendChild(bekijken);
-
-        meedoen.onclick = (function (currentSpel) {
-            return function () {
-                AddPlayerToGame(currentSpel.creator, data.Gebruiker, currentSpel);
-            };
-        })(spel);
-        meedoen.innerHTML = 'Meedoen';
-        meedoentd.appendChild(meedoen);
-
-
-
-        rij.appendChild(spelNaam);
-        rij.appendChild(maker);
-        rij.appendChild(deelnemer);
-        rij.appendChild(bekijkentd);
-        rij.appendChild(meedoentd);
-        algemeneLijst.appendChild(rij);
+        if (speler.email === spel.deelnemer) {
+            deelnemer.innerHTML = speler.naam;
+        }
     }
+
+    bekijken.href = '/Dammen/Spel/' + spel.id;
+    bekijken.innerHTML = 'Bekijken';
+    bekijkentd.appendChild(bekijken);
+
+    meedoen.onclick = (function (currentSpel) {
+        return function () {
+            AddPlayerToGame(currentSpel.creator, gebruiker, currentSpel);
+        };
+    })(spel);
+    meedoen.innerHTML = 'Meedoen';
+    meedoentd.appendChild(meedoen);
+
+
+
+    rij.appendChild(spelNaam);
+    rij.appendChild(maker);
+    rij.appendChild(deelnemer);
+    rij.appendChild(bekijkentd);
+    rij.appendChild(meedoentd);
+    return rij;
 }
+
 function GetGameList() {
     $.ajax({
         url: 'Dammen/GetGameLijst',
