@@ -31,7 +31,11 @@ namespace Setup.Controllers
             {
                 using (var dbContext = new WebpageDBContext())
                 {
-                    dbContext.Speler.Find(loginModel.Email);
+                    if (dbContext.Speler?.Find(loginModel.Email) == null)
+                    {
+                        ViewData["ValidateMessage"] = "User not found!";
+                        return View();
+                    }
                     if (VerifyPassword(loginModel.Password, dbContext.Speler.Find(loginModel.Email)!.Wachtwoord))
                     {
                         List<Claim> claims = new List<Claim>

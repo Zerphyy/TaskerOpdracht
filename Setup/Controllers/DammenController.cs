@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Setup.Data;
+using Setup.Hubs;
 using System.Security.Claims;
 
 namespace Setup.Controllers
@@ -8,6 +10,12 @@ namespace Setup.Controllers
     [Controller]
     public class DammenController : Controller
     {
+        private readonly IHubContext<GameHub> _hubContext;
+
+        public DammenController(IHubContext<GameHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
         // GET: DammenController
         public ActionResult Index()
         {
@@ -48,7 +56,7 @@ namespace Setup.Controllers
 
         // POST: DammenController/Create
         [HttpPost]
-        public ActionResult Create(DamSpel model)
+        public async Task<IActionResult> Create(DamSpel model)
         {
             using (var dbContext = new WebpageDBContext())
             {
@@ -56,6 +64,7 @@ namespace Setup.Controllers
                 DatabaseSaving(bord, dbContext, "Add");
                 DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
                 DatabaseSaving(spel, dbContext, "Add");
+                await _hubContext.Clients.All.SendAsync("GameListChanged");
 
             }
             return RedirectToAction("Index");
@@ -83,7 +92,7 @@ namespace Setup.Controllers
         }
 
         [HttpPost]
-        public IActionResult Delete( DamSpel spel)
+        public IActionResult Delete( DamSpel? spel)
         {
             using (var dbContext = new WebpageDBContext())
             {
@@ -159,7 +168,7 @@ namespace Setup.Controllers
         public IActionResult GetGameLijst()
         {
             var dbContext = new WebpageDBContext();
-            var damSpellen = dbContext.DamSpel?.ToList();
+            var damSpellen = dbContext.DamSpel?.OrderBy(e => e.Id).ToList();
             var spelers = dbContext.Speler?.ToList();
             var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var lijstData = new Dictionary<string, object?>

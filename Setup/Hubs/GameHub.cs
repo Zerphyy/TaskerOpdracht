@@ -6,7 +6,7 @@ namespace Setup.Hubs
     {
         public async Task NotifyGameChanged()
         {
-            await Clients.All.SendAsync("GameChanged");
+            await Clients.All.SendAsync("GameListChanged");
         }
     }
 }

@@ -22,40 +22,6 @@
     <th>Spel bekijken</th>
     <th>Spelen</th>
     <tbody id="game__lijst">
-        @foreach (var spel in ViewBag.DamSpellen)
-        {
-            <tr>
-                <td>@spel.SpelNaam</td>
-                @foreach (var speler in ViewBag.Spelers)
-                {
-                    if (speler.Email == spel.Creator)
-                    {
-                        <td>@speler.Naam</td>
-                    }
-                }
-                @{
-                    var spelerGevonden = false;
-                    foreach (var speler in ViewBag.Spelers)
-                    {
-                        if (speler.Email == spel.Deelnemer)
-                        {
-                            <td>@speler.Naam</td>
-                            spelerGevonden = true;
-                        }
-                    }
-                    if (!spelerGevonden)
-                    {
-                        <td>...</td>
-                    }
-                }
-                <td>
-                    <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
-                </td>
-                <td>
-                    <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel)), event'>Meedoen</button>
-                </td>
-            </tr>
-        }
     </tbody>
 </table>
 <hr />
@@ -74,55 +40,10 @@
     <th>Spelen</th>
     <th>Verwijderen</th>
     <tbody id="eigen__game__lijst">
-        @foreach (var spel in ViewBag.DamSpellen)
-        {
-            if (spel.Creator == User.FindFirstValue(ClaimTypes.NameIdentifier))
-            {
-                string naam = "";
-                using (var dbContext = new WebpageDBContext())
-                {
-                    naam = dbContext.Speler.Find(spel.Creator).Naam;
-                    if (naam.Equals(String.Empty))
-                    {
-                        naam = "";
-                    }
-                }
-                <tr>
-                    <td>@spel.SpelNaam</td>
-                    <td>@naam</td>
-                    @{
-                        var spelerGevonden = false;
-                        foreach (var speler2 in ViewBag.Spelers)
-                        {
-                            if (speler2.Email == spel.Deelnemer)
-                            {
-                                <td>@speler2.Naam</td>
-                                spelerGevonden = true;
-                            }
-                        }
-                        if (!spelerGevonden)
-                        {
-                            <td>...</td>
-                        }
-                    }
-                    <td>
-                        <a asp-action="Spel" asp-route-id="@spel.Id">Bekijken</a>
-                    </td>
-                    <td>
-                        <button onclick='AddPlayerToGame(@Json.Serialize(spel.Creator), @Json.Serialize(User.FindFirstValue(ClaimTypes.NameIdentifier)), @Json.Serialize(spel))'>Meedoen</button>
-                    </td>
-                    <td>
-                        <button onclick='RemoveGame(@Json.Serialize(spel))'>Verwijderen</button>
-                    </td>
-                </tr>
-            }
-            
-        }
     </tbody>
 </table>
-
 @*putting scripts down here ensures all page information is loaded before scripts are executed*@
-<script src="~/js/testing.js" asp-append-version="true"></script>
-<script src="~/js/Dammen.js" asp-append-version="true"></script>
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.10/signalr.min.js"></script>
+<script src="~/js/testing.js" asp-append-version="true"></script>
+<script src="~/js/Dammen.js" asp-append-version="true"></script>
