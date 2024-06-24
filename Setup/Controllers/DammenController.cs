@@ -34,6 +34,7 @@ namespace Setup.Controllers
                 DamSpel? damSpel = _context.DamSpel?.Find(id);
                 if (damSpel != null)
                 {
+                    ViewBag.BordStand = damSpel.BordStand;  // Pass the BordStand value to the view
                     return View(damSpel);
                 }
                 else
@@ -42,6 +43,7 @@ namespace Setup.Controllers
                 }
             }
         }
+
 
         // GET: DammenController/Details/5
         public ActionResult Details(int id)
@@ -63,7 +65,7 @@ namespace Setup.Controllers
             {
                 DamBord bord = new DamBord(0);
                 DatabaseSaving(bord, _context, "Add");
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
+                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "1111111111111111000000000000000000000000000000002222222222222222");
                 DatabaseSaving(spel, _context, "Add");
                 await _hubContext.Clients.All.SendAsync("GameListChanged");
 

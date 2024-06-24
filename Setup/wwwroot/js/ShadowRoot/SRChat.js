@@ -3,7 +3,7 @@ var container = document.querySelector('#shadowHost').shadowRoot.querySelector('
 
 var chatContainer = document.createElement('div');
 chatContainer.style.width = '30%';
-chatContainer.style.height = '100%';
+chatContainer.style.height = '70%';
 chatContainer.style.display = 'flex';
 chatContainer.style.flexDirection = 'column';
 

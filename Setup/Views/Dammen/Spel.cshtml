@@ -8,7 +8,14 @@
 
 <div id="shadowHost"></div>
 
-
 <script src="~/js/ShadowRoot/SRInit.js" asp-append-version="true"></script>
 <script src="~/js/ShadowRoot/SRDambord.js" asp-append-version="true"></script>
 <script src="~/js/ShadowRoot/SRChat.js" asp-append-version="true"></script>
+<script src="~/js/DamSpelMechanics.js" asp-append-version="true"></script>
+
+<script>
+    window.onload = function () {
+        // Call the placePieces function with the BordStand value
+        placePieces('@ViewBag.BordStand');
+    }
+</script>
