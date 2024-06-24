@@ -45,14 +45,8 @@ void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<WebpageDBContext>(options =>
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=TaskerOpdrachtDb;Trusted_Connection=True;");
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            options.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
-        }
+        var connectionString = builder.Configuration.GetConnectionString("CheckersChampsDb");
+        options.UseSqlServer(connectionString);
     });
     services.AddSignalR();
     services.AddControllers();

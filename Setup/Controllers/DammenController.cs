@@ -11,26 +11,27 @@ namespace Setup.Controllers
     public class DammenController : Controller
     {
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly WebpageDBContext _context;
 
-        public DammenController(IHubContext<GameHub> hubContext)
+        public DammenController(IHubContext<GameHub> hubContext, WebpageDBContext context)
         {
             _hubContext = hubContext;
+            _context = context;
         }
         // GET: DammenController
         public ActionResult Index()
         {
-            var dbContext = new WebpageDBContext();
-            var damSpellen = dbContext.DamSpel?.ToList();
-            var spelers = dbContext.Speler?.ToList();
+            var damSpellen = _context.DamSpel?.ToList();
+            var spelers = _context.Speler?.ToList();
             ViewBag.Spelers = spelers;
             ViewBag.DamSpellen = damSpellen;
             return View();
         }
         public ActionResult Spel(int id)
         {
-            using (var context = new WebpageDBContext())
+            using (_context)
             {
-                DamSpel? damSpel = context.DamSpel?.Find(id);
+                DamSpel? damSpel = _context.DamSpel?.Find(id);
                 if (damSpel != null)
                 {
                     return View(damSpel);
@@ -58,12 +59,12 @@ namespace Setup.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DamSpel model)
         {
-            using (var dbContext = new WebpageDBContext())
+            using (_context)
             {
                 DamBord bord = new DamBord(0);
-                DatabaseSaving(bord, dbContext, "Add");
+                DatabaseSaving(bord, _context, "Add");
                 DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
-                DatabaseSaving(spel, dbContext, "Add");
+                DatabaseSaving(spel, _context, "Add");
                 await _hubContext.Clients.All.SendAsync("GameListChanged");
 
             }
@@ -92,16 +93,16 @@ namespace Setup.Controllers
         }
 
         [HttpPost]
-        public IActionResult Delete( DamSpel? spel)
+        public IActionResult Delete(DamSpel? spel)
         {
-            using (var dbContext = new WebpageDBContext())
+            using (_context)
             {
-                DamSpel? damSpel = dbContext.DamSpel?.Find(spel.Id);
+                DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
                 if (damSpel == null)
                 {
                     return Json(new { success = false, message = "Spel kon niet worden gevonden." });
                 }
-                DatabaseSaving(damSpel, dbContext, "Remove");
+                DatabaseSaving(damSpel, _context, "Remove");
             }
             return Json(new { success = true });
         }
@@ -144,13 +145,13 @@ namespace Setup.Controllers
                     }
                     return Json(new { success = false, message = "Deze game zit al vol!" });
                 }
-                using (var context = new WebpageDBContext())
+                using (_context)
                 {
-                    DamSpel? damSpel = context.DamSpel?.Find(spel.Id);
+                    DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
                     if (damSpel != null)
                     {
                         damSpel.Deelnemer = speler2;
-                        DatabaseSaving(damSpel, context, "Update");
+                        DatabaseSaving(damSpel, _context, "Update");
                         return Json(new { success = true, id = spel.Id });
                     }
                     else
@@ -167,9 +168,8 @@ namespace Setup.Controllers
         [HttpGet]
         public IActionResult GetGameLijst()
         {
-            var dbContext = new WebpageDBContext();
-            var damSpellen = dbContext.DamSpel?.OrderBy(e => e.Id).ToList();
-            var spelers = dbContext.Speler?.ToList();
+            var damSpellen = _context.DamSpel?.OrderBy(e => e.Id).ToList();
+            var spelers = _context.Speler?.ToList();
             var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var lijstData = new Dictionary<string, object?>
         {

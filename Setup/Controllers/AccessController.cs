@@ -9,6 +9,12 @@ namespace Setup.Controllers
 {
     public class AccessController : Controller
     {
+        private readonly WebpageDBContext _context;
+        public AccessController(WebpageDBContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Login()
         {
             ClaimsPrincipal userLoggedIn = HttpContext.User;
@@ -29,14 +35,14 @@ namespace Setup.Controllers
             //}
             if (loginModel.Email != null && loginModel.Password != null)
             {
-                using (var dbContext = new WebpageDBContext())
+                using (_context)
                 {
-                    if (dbContext.Speler?.Find(loginModel.Email) == null)
+                    if (_context.Speler?.Find(loginModel.Email) == null)
                     {
                         ViewData["ValidateMessage"] = "User not found!";
                         return View();
                     }
-                    if (VerifyPassword(loginModel.Password, dbContext.Speler.Find(loginModel.Email)!.Wachtwoord))
+                    if (VerifyPassword(loginModel.Password, _context.Speler.Find(loginModel.Email)!.Wachtwoord))
                     {
                         List<Claim> claims = new List<Claim>
                 {
@@ -74,11 +80,11 @@ namespace Setup.Controllers
                     string wachtwoord = HashPassword(registerModel.Password);
                     if (VerifyPassword(registerModel.Password, wachtwoord))
                     {
-                        await using (var dbContext = new WebpageDBContext())
+                        await using (_context)
                         {
                             Gebruiker gebruiker = new Gebruiker(registerModel.Username, registerModel.Email, wachtwoord);
-                            dbContext.Add(gebruiker);
-                            dbContext.SaveChanges();
+                            _context.Add(gebruiker);
+                            _context.SaveChanges();
                         }
                         return RedirectToAction("Login", "Access");
                     }

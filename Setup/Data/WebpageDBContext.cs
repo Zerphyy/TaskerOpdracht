@@ -16,20 +16,7 @@ namespace Setup.Data
 
         public WebpageDBContext(DbContextOptions<WebpageDBContext> options) : base(options)
         {
-        }
-        public WebpageDBContext()
-        {
-        }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=TaskerOpdrachtDb;Trusted_Connection=True;");
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                optionsBuilder.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
-            }
+            Console.WriteLine(options);
         }
         //seeden van DB tabel (zouu verouderd kunnen zijn)
         protected override void OnModelCreating(ModelBuilder modelBuilder)

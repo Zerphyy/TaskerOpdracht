@@ -16,12 +16,14 @@ namespace Setup.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly WebpageDBContext _context;
 
         private const string PageViews = "PageViews";
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, WebpageDBContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -73,12 +75,12 @@ namespace Setup.Controllers
                 //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
                 //db connectie opzetten
-                using (var dbContext = new WebpageDBContext())
+                using (_context)
                 {
                     //data toevoegen aan ContactData tabel
-                    dbContext.ContactData.Add(model);
+                    _context.ContactData.Add(model);
                     //db opslaanS
-                    dbContext.SaveChanges();
+                    _context.SaveChanges();
                 }
                     return RedirectToAction("Index");
             }
