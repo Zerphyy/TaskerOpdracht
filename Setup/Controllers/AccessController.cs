@@ -33,7 +33,7 @@ namespace Setup.Controllers
                 
             //    return RedirectToAction("Index", "Home");
             //}
-            if (loginModel.Email != null && loginModel.Password != null)
+            if (loginModel != null && loginModel.Email != null && loginModel.Password != null)
             {
                 using (_context)
                 {

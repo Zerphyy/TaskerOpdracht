@@ -1,4 +1,5 @@
-﻿@model Setup.Data.DamSpel
+﻿@using Newtonsoft.Json;
+@model Setup.Data.DamSpel
 
 @{
     ViewData["Title"] = "Spel";
@@ -16,6 +17,7 @@
 <script>
     window.onload = function () {
         // Call the placePieces function with the BordStand value
-        placePieces('@ViewBag.BordStand');
+        var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
+        placePieces('@ViewBag.BordStand', spelersArray, '@ViewBag.Gebruiker');
     }
 </script>
