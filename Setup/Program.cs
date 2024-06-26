@@ -45,7 +45,7 @@ void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<WebpageDBContext>(options =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("CheckersChampsDb");
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         options.UseSqlServer(connectionString);
     });
     services.AddSignalR();
