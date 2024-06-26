@@ -91,6 +91,10 @@ var CheckersModule = (function () {
         },
         setSpelers: function (players) {
             spelers = players;
+        },
+        isPlayersPiece: function (pieceState, gebruiker, spelers) {
+            return (gebruiker === spelers[0] && (pieceState === 1 || pieceState === 3)) ||
+                (gebruiker === spelers[1] && (pieceState === 2 || pieceState === 4));
         }
     };
 })();
@@ -132,8 +136,7 @@ function placePieces(gameState, spelers, gebruiker) {
         squareDiv.appendChild(pieceDiv);
 
         // Check if the piece belongs to the current player
-        if ((gebruiker === spelers[0] && (squareState === 1 || squareState === 3)) ||
-            (gebruiker === spelers[1] && (squareState === 2 || squareState === 4))) {
+        if (CheckersModule.isPlayersPiece(squareState, gebruiker, spelers)) {
             // Use an IIFE to create a new scope for each iteration
             (function (i, squareDiv) {
                 var pieceDiv = squareDiv.firstChild;
@@ -175,7 +178,6 @@ function getPossibleMoves(i, gameState, gebruiker, spelers) {
     var shadowRoot = CheckersModule.getShadowRoot();
     // Add a grey circle to the squares diagonally ahead
     [leftSquareIndex, rightSquareIndex].forEach(function (index) {
-        console.log(gameStateArray, index);
         if (index !== null && index.row >= 0 && index.row < 8 && index.col >= 0 && index.col < 8 && gameStateArray[index.row][index.col] === 0) {
             var squareDiv = shadowRoot.querySelector('#square' + (index.row * 8 + index.col));
             var circleDiv = document.createElement('div');
@@ -187,22 +189,37 @@ function getPossibleMoves(i, gameState, gebruiker, spelers) {
             circleDiv.style.top = '25%';
             circleDiv.style.backgroundColor = 'grey';
             circleDiv.className = 'grey-circle';
-            (function (squareDiv) {
+            (function (i, squareDiv) {
                 circleDiv.addEventListener('click', function () {
-                    movePiece(squareDiv);
+                    movePiece(i, squareDiv);
                 });
-            })(squareDiv);
+            })(i, squareDiv);
             squareDiv.appendChild(circleDiv);
         }
     });
 }
 
-function movePiece(squareDiv) {
+function movePiece(i, squareDiv) {
+    // Remove the grey circles
+    CheckersModule.removeAvailableMovePositions();
+
     let square = CheckersModule.getSelectedPiece();
     let piece = square.firstChild;
+    let pieceState = CheckersModule.getGameStateArray()[Math.floor(i / 8)][i % 8];
     square.removeChild(piece);
     squareDiv.appendChild(piece);
-    piece.removeEventListener('click', piece.clickHandler);  // Remove the old event listener
+    piece.removeEventListener('click', piece.clickHandler);
+
+    // Calculate the new index i based on the position of the moved piece
+    i = Array.from(squareDiv.parentNode.children).indexOf(squareDiv);
+
+    // Update the gameState and gameStateArray
+    let gameStateArray = CheckersModule.getGameStateArray();
+    gameStateArray[Math.floor(square.id.slice(6) / 8)][square.id.slice(6) % 8] = 0;  // Remove the piece from the old square
+    gameStateArray[Math.floor(i / 8)][i % 8] = pieceState;  // Add the piece to the new square
+
+    // Flatten the 2D array into a string and update the gameStateArray
+    CheckersModule.setGameStateArray(gameStateArray.flat().join(''));
 
     // Add a new event listener with the updated squareDiv
     var clickHandler = function () {
@@ -213,5 +230,4 @@ function movePiece(squareDiv) {
     piece.clickHandler = clickHandler;  // Store the handler for later removal
 
     CheckersModule.setSelectedPiece(piece);  // Update the selected piece to the moved piece
-    CheckersModule.removeAvailableMovePositions();  // Remove the grey circles
 }
