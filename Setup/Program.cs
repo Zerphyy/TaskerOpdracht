@@ -45,9 +45,20 @@ void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<WebpageDBContext>(options =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        string connectionString;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = builder.Configuration.GetConnectionString("CheckersChampsDb");
+        }
+        else
+        {
+            connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        }
+
         options.UseSqlServer(connectionString);
     });
+
     services.AddSignalR();
     services.AddControllers();
 }

@@ -70,7 +70,10 @@ namespace Setup.Controllers
             {
                 DamBord bord = new DamBord(0);
                 DatabaseSaving(bord, _context, "Add");
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020");
+                //correcte opzet
+                //DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020");
+                //test opzet
+                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000002020202000000000202020200000000");
                 DatabaseSaving(spel, _context, "Add");
                 await _hubContext.Clients.All.SendAsync("GameListChanged");
 
