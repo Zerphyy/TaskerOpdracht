@@ -1,4 +1,21 @@
-﻿var CheckersModule = (function () {
+﻿
+var connection;
+
+document.addEventListener('DOMContentLoaded', function () {
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl("/gameHub")
+        .build();
+    connection.on("PlayerMoved", function (gameState) {
+        console.log("hallo!");
+        UpdateBoard(gameState);
+    })
+    connection.start().then(function () {
+        console.log("SignalR Connected");
+    }).catch(function (err) {
+        console.error(err.toString());
+    });
+});
+var CheckersModule = (function () {
     var gameStateArray = [];
     var selectedPiece = null;
     var gameState = null;
@@ -13,7 +30,10 @@
             }
         }
     }
-
+    function GameStateArrayToGameState() {
+        // Flatten the 2D array and join it into a string
+        return gameStateArray.flat().join('');
+    }
     function createCircleDiv() {
         var circleDiv = document.createElement('div');
         circleDiv.style.width = '50%';
@@ -54,8 +74,8 @@
             leftSquareIndex = col === 0 ? null : { row: row + 1, col: col - 1 };
             rightSquareIndex = col === 7 ? null : { row: row + 1, col: col + 1 };
         } else {
-            leftSquareIndex = col === 0 ? null : { row: row - 1, col: col + 1 };
-            rightSquareIndex = col === 7 ? null : { row: row - 1, col: col - 1 };
+            leftSquareIndex = col === 0 ? null : { row: row - 1, col: col - 1 };
+            rightSquareIndex = col === 7 ? null : { row: row - 1, col: col + 1 };
         }
 
         CheckersModule.removeAvailableMovePositions();
@@ -117,6 +137,10 @@
         piece.clickHandler = clickHandler;
 
         CheckersModule.setSelectedPiece(piece);
+        CheckersModule.setGameState(CheckersModule.GameStateArrayToGameState());
+        connection.invoke("NotifyPlayerMoved", CheckersModule.getGameState()).catch(function (err) {
+            console.error(err.toString());
+        });
     }
 
     return {
@@ -166,7 +190,8 @@
                 (gebruiker === spelers[1] && (pieceState === 2 || pieceState === 4));
         },
         getPossibleMoves: getPossibleMoves,
-        movePiece: movePiece
+        movePiece: movePiece,
+        GameStateArrayToGameState: GameStateArrayToGameState
     };
 })();
 
@@ -220,6 +245,18 @@ function placePieces(gameState, spelers, gebruiker) {
     }
 }
 
+function UpdateBoard(gameState) {
+    // Iterate over each square and remove its child nodes
+    for (let i = 0; i < 64; i++) { // Adjust the range according to your board size
+        var square = document.querySelector('#shadowHost').shadowRoot.querySelector('#square' + i);
+        while (square.firstChild) {
+            square.removeChild(square.firstChild);
+        }
+    }
+
+    // Place new pieces according to the gameState
+    placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker());
+}
 window.onload = function () {
     var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
     placePieces('@ViewBag.BordStand', spelersArray, '@ViewBag.Gebruiker');
