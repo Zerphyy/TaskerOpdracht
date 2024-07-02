@@ -43,6 +43,7 @@ var CheckersModule = (function () {
     var gebruiker = null;
     var spelers = null;
     var gameId = null;
+    var captureMoves = [];
     function updateGameStateArray(gameState) {
         for (let j = 0; j < 8; j++) {
             gameStateArray[j] = [];
@@ -228,6 +229,12 @@ var CheckersModule = (function () {
         setSpelers: function (players) {
             spelers = players;
         },
+        getCaptureMoves: function () {
+            return captureMoves;
+        },
+        setCaptureMoves: function (moves) {
+            captureMoves = moves;
+        },
         isPlayersPiece: function (pieceState, gebruiker, spelers) {
             return (gebruiker === spelers[0] && (pieceState === 1 || pieceState === 3)) ||
                 (gebruiker === spelers[1] && (pieceState === 2 || pieceState === 4));
@@ -238,7 +245,7 @@ var CheckersModule = (function () {
     };
 })();
 
-function placePieces(gameState, spelers, gebruiker, Id) {
+function placePieces(gameState, spelers, gebruiker, Id, captureMoves) {
     CheckersModule.setGameId(Id);
     CheckersModule.setGameState(gameState);
     CheckersModule.setGameStateArray(gameState);
@@ -273,14 +280,27 @@ function placePieces(gameState, spelers, gebruiker, Id) {
                 break;
         }
 
+        // Assign an id to the piece based on its value in the game state
+        pieceDiv.id = 'piece' + squareState;
+
         squareDiv.appendChild(pieceDiv);
 
         if (CheckersModule.isPlayersPiece(squareState, gebruiker, spelers)) {
             (function (i, squareDiv) {
                 var pieceDiv = squareDiv.firstChild;
                 var clickHandler = function () {
-                    CheckersModule.setSelectedPiece(squareDiv);
-                    CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                    // Check if the captureMoves array is not empty, null or undefined
+                    if (captureMoves && captureMoves.length > 0) {
+                        // If the piece is in the captureMoves array, show the moves
+                        if (captureMoves.includes(pieceDiv)) {
+                            CheckersModule.setSelectedPiece(squareDiv);
+                            CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                        }
+                    } else {
+                        // If the captureMoves array is empty, null or undefined, use the old code
+                        CheckersModule.setSelectedPiece(squareDiv);
+                        CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                    }
                 };
                 pieceDiv.addEventListener('click', clickHandler);
                 pieceDiv.clickHandler = clickHandler;
@@ -288,26 +308,35 @@ function placePieces(gameState, spelers, gebruiker, Id) {
         }
     }
 }
+
 function checkForAdditionalCapture(squareDiv, capturedPrevious) {
-    // Assuming 'piece' is the piece that just moved and 'gameState' is the current state of the game
-    // Also assuming 'getPossibleMoves' is a function that returns an array of possible moves for a given piece
     if (!capturedPrevious) {
         console.log("No capture move possible this turn");
         return;
     }
     var i = parseInt(squareDiv.id.replace('square', ''));
     var possibleMoves = CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
-    var capturePossible = false;
+    var captureMoves = []; // Array to store the capture moves
+
     for (var i = 0; i < possibleMoves.length; i++) {
         var move = possibleMoves[i];
         if (move.isCapture) {
-            capturePossible = true;
+            captureMoves.push(move); // Add the move to the captureMoves array
         }
     }
-    console.log(!capturePossible ? "No capture moves left" : "Another capture is possible");
+
+    // Set the captureMoves array in the CheckersModule
+    CheckersModule.setCaptureMoves(captureMoves);
+
+    if (captureMoves.length > 0) {
+        console.log("Another capture is possible");
+    } else {
+        console.log("No capture moves left");
+    }
 }
 
-function UpdateBoard(gameState) {
+
+function UpdateBoard(gameState, captureMoves) {
     // Iterate over each square and remove its child nodes
     for (let i = 0; i < 64; i++) { // Adjust the range according to your board size
         var square = document.querySelector('#shadowHost').shadowRoot.querySelector('#square' + i);
@@ -317,7 +346,7 @@ function UpdateBoard(gameState) {
     }
 
     // Place new pieces according to the gameState
-    placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker(), CheckersModule.getGameId());
+    placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker(), CheckersModule.getGameId(), captureMoves);
 }
 window.onload = function () {
     var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
