@@ -19,6 +19,6 @@
     window.onload = function () {
         // Call the placePieces function with the BordStand value
         var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
-        placePieces('@ViewBag.BordStand', spelersArray, '@ViewBag.Gebruiker');
+        placePieces('@ViewBag.BordStand', spelersArray, '@ViewBag.Gebruiker', '@ViewBag.Id');
     }
 </script>

@@ -40,6 +40,7 @@ namespace Setup.Controllers
                     ViewBag.Spelers = JsonConvert.SerializeObject(spelers);
                     ViewBag.Gebruiker = gebruiker;
                     ViewBag.BordStand = damSpel.BordStand;  // Pass the BordStand value to the view
+                    ViewBag.Id = damSpel.Id;
                     return View(damSpel);
                 }
                 else
@@ -188,6 +189,24 @@ namespace Setup.Controllers
             { "Gebruiker", gebruiker}
         };
             return Json(lijstData);
+        }
+        [HttpPost]
+        public IActionResult UpdateBoardData(string gameState, string gameId)
+        {
+            using (_context)
+            {
+                DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
+                if (spel == null)
+                {
+                    return Json(new { success = false, message = "Spel kon niet worden gevonden." });
+                }
+                else
+                {
+                    spel.BordStand = gameState;
+                    DatabaseSaving(spel, _context, "Update");
+                    return Json(new { success = true });
+                }
+            }
         }
     }
     public class GameData

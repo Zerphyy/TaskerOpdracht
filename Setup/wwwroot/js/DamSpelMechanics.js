@@ -1,13 +1,34 @@
 ﻿
 var connection;
-
+var isUpdating = false;
 document.addEventListener('DOMContentLoaded', function () {
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/gameHub")
         .build();
     connection.on("PlayerMoved", function (gameState) {
         console.log("hallo!");
-        UpdateBoard(gameState);
+        $.ajax({
+            url: '/Dammen/UpdateBoardData',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                gameState: gameState,
+                gameId: CheckersModule.getGameId()
+            },
+            success: function (result) {
+                if (result.success) {
+                    UpdateBoard(gameState);
+                } else {
+                    console.log("could not save to database");
+                }
+                isUpdating = false; // set the flag to false after the update
+            },
+            error: function (error) {
+                console.error('Error:', error);
+                isUpdating = false; // set the flag to false after the update
+            }
+        });
+        
     })
     connection.start().then(function () {
         console.log("SignalR Connected");
@@ -21,7 +42,7 @@ var CheckersModule = (function () {
     var gameState = null;
     var gebruiker = null;
     var spelers = null;
-
+    var gameId = null;
     function updateGameStateArray(gameState) {
         for (let j = 0; j < 8; j++) {
             gameStateArray[j] = [];
@@ -59,11 +80,13 @@ var CheckersModule = (function () {
         if (index !== null && index.row >= 0 && index.row < 8 && index.col >= 0 && index.col < 8 && gameStateArray[index.row][index.col] === 0) {
             var squareDiv = CheckersModule.getShadowRoot().querySelector('#square' + (index.row * 8 + index.col));
             addMoveListener(i, squareDiv, isCapture);
+            return { "squareDiv": squareDiv, "isCapture": true };
         }
     }
 
     function getPossibleMoves(i, gameState, gebruiker, spelers) {
         var gameStateArray = CheckersModule.getGameStateArray();
+        var possibleMoves = [];
 
         var square = document.querySelector('#shadowHost').shadowRoot.querySelector('#square' + i);
         var piece = square.firstChild;
@@ -81,7 +104,10 @@ var CheckersModule = (function () {
         CheckersModule.removeAvailableMovePositions();
         [leftSquareIndex, rightSquareIndex].forEach(function (index) {
             if (index !== null) {
-                checkMove(index, i, false);
+                var move = checkMove(index, i, false);
+                if (move) {
+                    possibleMoves.push(move);
+                }
             }
         });
 
@@ -98,13 +124,23 @@ var CheckersModule = (function () {
                 var enemyRow = (row + index.row) / 2;
                 var enemyCol = (col + index.col) / 2;
                 if (gameStateArray[enemyRow] && gameStateArray[enemyRow][enemyCol] !== 0 && !CheckersModule.isPlayersPiece(gameStateArray[enemyRow][enemyCol], gebruiker, spelers)) {
-                    checkMove(index, i, true);
+                    var move = checkMove(index, i, true);
+                    if (move) {
+                        possibleMoves.push(move);
+                    }
                 }
             }
         });
+        return possibleMoves;
     }
 
     function movePiece(i, squareDiv, isCapture) {
+        if (isUpdating) {
+            console.log('Game state is updating, please wait...');
+            return;
+        }
+
+        isUpdating = true; // set the flag to true when starting the update
         CheckersModule.removeAvailableMovePositions();
 
         let square = CheckersModule.getSelectedPiece();
@@ -141,6 +177,7 @@ var CheckersModule = (function () {
         connection.invoke("NotifyPlayerMoved", CheckersModule.getGameState()).catch(function (err) {
             console.error(err.toString());
         });
+        checkForAdditionalCapture(squareDiv, isCapture);
     }
 
     return {
@@ -166,6 +203,12 @@ var CheckersModule = (function () {
             this.getAvailableMovePositions().forEach(function (circle) {
                 circle.remove();
             });
+        },
+        getGameId: function () {
+            return gameId;
+        },
+        setGameId: function (Id) {
+            gameId = Id;
         },
         getGameState: function () {
             return gameState;
@@ -195,7 +238,8 @@ var CheckersModule = (function () {
     };
 })();
 
-function placePieces(gameState, spelers, gebruiker) {
+function placePieces(gameState, spelers, gebruiker, Id) {
+    CheckersModule.setGameId(Id);
     CheckersModule.setGameState(gameState);
     CheckersModule.setGameStateArray(gameState);
     CheckersModule.setSpelers(spelers);
@@ -244,6 +288,24 @@ function placePieces(gameState, spelers, gebruiker) {
         }
     }
 }
+function checkForAdditionalCapture(squareDiv, capturedPrevious) {
+    // Assuming 'piece' is the piece that just moved and 'gameState' is the current state of the game
+    // Also assuming 'getPossibleMoves' is a function that returns an array of possible moves for a given piece
+    if (!capturedPrevious) {
+        console.log("No capture move possible this turn");
+        return;
+    }
+    var i = parseInt(squareDiv.id.replace('square', ''));
+    var possibleMoves = CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+    var capturePossible = false;
+    for (var i = 0; i < possibleMoves.length; i++) {
+        var move = possibleMoves[i];
+        if (move.isCapture) {
+            capturePossible = true;
+        }
+    }
+    console.log(!capturePossible ? "No capture moves left" : "Another capture is possible");
+}
 
 function UpdateBoard(gameState) {
     // Iterate over each square and remove its child nodes
@@ -255,7 +317,7 @@ function UpdateBoard(gameState) {
     }
 
     // Place new pieces according to the gameState
-    placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker());
+    placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker(), CheckersModule.getGameId());
 }
 window.onload = function () {
     var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
