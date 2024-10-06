@@ -426,7 +426,6 @@ function checkForAdditionalCapture(squareDiv, capturedPrevious) {
                 var pieceElement = targetSquare.querySelector('div'); // Check if there's a piece in the target square
 
                 if (pieceElement && pieceElement.className === 'grey-circle') {
-                    console.log("No capture moves left, empty square");
                     canCaptureAgain = false;
                 }
             } else {
@@ -445,13 +444,12 @@ function checkForAdditionalCapture(squareDiv, capturedPrevious) {
                         // Check if the piece is capturable (an opponent's piece)
                         if (CheckersModule.getGebruiker() === CheckersModule.getSpelers()[0] && pieceId === 'piece2' ||
                             CheckersModule.getGebruiker() === CheckersModule.getSpelers()[1] && pieceId === 'piece1') {
-                            console.log("Another capture is possible, capturing: " + pieceId);
                             canCaptureAgain = true; // A valid capture move is possible
                         } else {
-                            console.log("No capture moves left, friendly piece in the way");
+                            canCaptureAgain = false;
                         }
                     } else {
-                        console.log("No capture moves left, no piece to capture");
+                        canCaptureAgain = false;
                     }
                 }
             }
