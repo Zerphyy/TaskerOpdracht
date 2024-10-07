@@ -41,6 +41,7 @@ namespace Setup.Controllers
                     ViewBag.Gebruiker = gebruiker;
                     ViewBag.BordStand = damSpel.BordStand;  // Pass the BordStand value to the view
                     ViewBag.Id = damSpel.Id;
+                    ViewBag.AanZet = damSpel.AanZet;
                     return View(damSpel);
                 }
                 else
@@ -74,7 +75,7 @@ namespace Setup.Controllers
                 //correcte opzet
                 //DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020");
                 //test opzet
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000002020202000000000202020200000000");
+                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000002020202000000000202020200000000", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 DatabaseSaving(spel, _context, "Add");
                 await _hubContext.Clients.All.SendAsync("GameListChanged");
 
@@ -191,7 +192,7 @@ namespace Setup.Controllers
             return Json(lijstData);
         }
         [HttpPost]
-        public IActionResult UpdateBoardData(string gameState, string gameId)
+        public IActionResult UpdateBoardData(string gameState, string gameId, string beurt)
         {
             using (_context)
             {
@@ -203,6 +204,7 @@ namespace Setup.Controllers
                 else
                 {
                     spel.BordStand = gameState;
+                    spel.AanZet = beurt;
                     DatabaseSaving(spel, _context, "Update");
                     return Json(new { success = true });
                 }

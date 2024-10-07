@@ -18,10 +18,11 @@ namespace Setup.Data
         public int DamBordId { get; set; }
         public bool IsSpelVoorbij { get; set; }
         public string BordStand {  get; set; }
+        public string AanZet { get; set; }
 
 
         public DamSpel() { }
-        public DamSpel(int id, string spelNaam, string? winnaar, string creator, string? deelnemer, int damBordId, bool isSpelVoorbij, string bordStand)
+        public DamSpel(int id, string spelNaam, string? winnaar, string creator, string? deelnemer, int damBordId, bool isSpelVoorbij, string bordStand, string aanZet)
         {
             Id = id;
             SpelNaam = spelNaam;
@@ -31,6 +32,7 @@ namespace Setup.Data
             DamBordId = damBordId;
             IsSpelVoorbij = isSpelVoorbij;
             BordStand = bordStand;
+            AanZet = aanZet;
         }
     }
 }

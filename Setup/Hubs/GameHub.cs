@@ -8,9 +8,9 @@ namespace Setup.Hubs
         {
             await Clients.All.SendAsync("GameListChanged");
         }
-        public async Task NotifyPlayerMoved(string gameState)
+        public async Task NotifyPlayerMoved(string gameState, string beurt)
         {
-            await Clients.All.SendAsync("PlayerMoved", gameState);
+            await Clients.All.SendAsync("PlayerMoved", gameState, beurt);
         }
     }
 }
