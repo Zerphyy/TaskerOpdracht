@@ -94,6 +94,7 @@ var CheckersModule = (function () {
             console.log("its not your turn!    " + CheckersModule.getCurrentTurn());
             return;
         }
+        CheckersModule.setGlobalCaptureMoves([]);
         var normalMoves = [];
         console.log(CheckersModule.getLastCapturingPiece());
         var row = Math.floor(i / 8);
@@ -356,7 +357,12 @@ function placePieces(gameState, spelers, gebruiker, Id, captureMoves, ct) {
     for (let i = 0; i < gameState.length; i++) {
         var squareState = parseInt(gameState.charAt(i));
         if (squareState === 0) continue;
-
+        if (squareState === 1 && i < gameState.length && i >= gameState.length - 8) {
+            squareState = 3;
+        }
+        if (squareState === 2 && i >= 0 && i < 8) {
+            squareState = 4;
+        }
         var squareDiv = document.querySelector('#shadowHost').shadowRoot.querySelector('#square' + i);
 
         var pieceDiv = document.createElement('div');
