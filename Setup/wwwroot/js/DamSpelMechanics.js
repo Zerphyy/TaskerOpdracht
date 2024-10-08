@@ -89,7 +89,7 @@ var CheckersModule = (function () {
         }
     }
 
-    function getPossibleMoves(i, gameState, gebruiker, spelers) {
+    function getPossibleNormalMoves(i, gameState, gebruiker, spelers) {
         if (CheckersModule.getCurrentTurn() != gebruiker) {
             console.log("its not your turn!    " + CheckersModule.getCurrentTurn());
             return;
@@ -101,7 +101,7 @@ var CheckersModule = (function () {
         var col = i % 8;
 
         var leftSquareIndex, rightSquareIndex;
-
+        var squareState = parseInt(gameState.charAt(i));
         if (gebruiker === spelers[0]) { // Player 1 (top) moves down
             leftSquareIndex = (col > 0 && row < 7) ? { row: row + 1, col: col - 1 } : null;
             rightSquareIndex = (col < 7 && row < 7) ? { row: row + 1, col: col + 1 } : null;
@@ -144,6 +144,17 @@ var CheckersModule = (function () {
 
         return normalMoves; // Return normal moves if no captures
     }
+    function getPossiblePromotedMoves(i, gameState) {
+        if (CheckersModule.getCurrentTurn() != gebruiker) {
+            console.log("its not your turn!    " + CheckersModule.getCurrentTurn());
+            return;
+        }
+        // Run the recursive diagonal checker for promoted pieces
+        checkDiagonalMoves(i, 1, 1, gameState); // Right-down
+        checkDiagonalMoves(i, 1, -1, gameState); // Right-up
+        checkDiagonalMoves(i, -1, 1, gameState); // Left-down
+        checkDiagonalMoves(i, -1, -1, gameState); // Left-up
+    }
 
     function movePiece(i, squareDiv, isCapture) {
         if (isUpdating) {
@@ -157,6 +168,11 @@ var CheckersModule = (function () {
         let square = CheckersModule.getSelectedPiece();
         let piece = square.firstChild;
         let pieceState = CheckersModule.getGameStateArray()[Math.floor(i / 8)][i % 8];
+        if (piece.id === 'piece3' && pieceState == 1) {
+            pieceState = 3;
+        } else if (piece.id === 'piece4' && pieceState == 2) {
+            pieceState = 4;
+        }
 
         // Check if lastCapturingPiece is set and prevent movement of any piece other than the last capturing piece
         if (CheckersModule.getLastCapturingPiece() !== null) {
@@ -198,7 +214,7 @@ var CheckersModule = (function () {
         // If additional capture exists, update moves accordingly
         if (CheckersModule.getGlobalCaptureMoves().length > 0) {
             // Removed adding grey circles
-            var possibleMoves = CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+            var possibleMoves = CheckersModule.getPossibleNormalMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
             // Logic to add moves without grey circles
 
             // Update the game state for the database here after processing additional captures
@@ -340,10 +356,12 @@ var CheckersModule = (function () {
             return (gebruiker === spelers[0] && (pieceState === 1 || pieceState === 3)) ||
                 (gebruiker === spelers[1] && (pieceState === 2 || pieceState === 4));
         },
-        getPossibleMoves: getPossibleMoves,
+        getPossibleNormalMoves: getPossibleNormalMoves,
+        getPossiblePromotedMoves: getPossiblePromotedMoves,
         movePiece: movePiece,
         GameStateArrayToGameState: GameStateArrayToGameState,
-        checkForPossibleCaptures: checkForPossibleCaptures
+        checkForPossibleCaptures: checkForPossibleCaptures,
+        checkMove: checkMove
     };
 })();
 
@@ -397,23 +415,48 @@ function placePieces(gameState, spelers, gebruiker, Id, captureMoves, ct) {
             (function (i, squareDiv) {
                 var pieceDiv = squareDiv.firstChild;
                 var clickHandler = function () {
-                    // Check if the captureMoves array is not empty, null or undefined
-                    if (captureMoves && captureMoves.length > 0) {
-                        // If the piece is in the captureMoves array, show the moves
-                        if (captureMoves.includes(pieceDiv)) {
-                            CheckersModule.setSelectedPiece(squareDiv);
-                            CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
-                        }
+                    CheckersModule.setSelectedPiece(squareDiv);
+                    if (pieceDiv.id === 'piece3' || pieceDiv.id === 'piece4') {
+                        CheckersModule.getPossiblePromotedMoves(i, gameState);
                     } else {
-                        // If the captureMoves array is empty, null or undefined, use the old code
-                        CheckersModule.setSelectedPiece(squareDiv);
-                        CheckersModule.getPossibleMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                        // Normal piece move handling
+                        if (captureMoves && captureMoves.length > 0 && captureMoves.includes(pieceDiv)) {
+                            CheckersModule.getPossibleNormalMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                        } else {
+                            CheckersModule.getPossibleNormalMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+                        }
                     }
                 };
                 pieceDiv.addEventListener('click', clickHandler);
                 pieceDiv.clickHandler = clickHandler;
             })(i, squareDiv);
         }
+    }
+}
+
+function checkDiagonalMoves(currentPosition, horizontal, vertical, gameState) {
+    
+    let row = Math.floor(currentPosition / 8);
+    let col = currentPosition % 8;
+    let nextRow = row + vertical;
+    let nextCol = col + horizontal;
+
+    while (nextRow >= 0 && nextRow < 8 && nextCol >= 0 && nextCol < 8) {
+        let nextPosition = nextRow * 8 + nextCol;
+        let squareState = parseInt(gameState.charAt(nextPosition));
+
+        if (squareState === 0) {
+            // Call checkMove for legitimate empty squares
+            let index = { row: nextRow, col: nextCol };
+            CheckersModule.checkMove(index, currentPosition, false); // false since it's not a capture
+        } else {
+            // Stop if we encounter any piece
+            break;
+        }
+
+        // Continue checking in the same diagonal direction
+        nextRow += vertical;
+        nextCol += horizontal;
     }
 }
 
@@ -425,7 +468,7 @@ function checkForAdditionalCapture(squareDiv, capturedPrevious) {
 
     var shadowRoot = document.querySelector('#shadowHost').shadowRoot;
 
-    var possibleMoves = CheckersModule.getPossibleMoves(
+    var possibleMoves = CheckersModule.getPossibleNormalMoves(
         parseInt(squareDiv.id.replace('square', '')),
         CheckersModule.getGameState(),
         CheckersModule.getGebruiker(),
