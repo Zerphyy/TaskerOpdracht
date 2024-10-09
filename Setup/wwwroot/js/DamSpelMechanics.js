@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             success: function (result) {
                 if (result.success) {
-                    UpdateBoard(gameState,CheckersModule.getCaptureMoves(), beurt);
+                    UpdateBoard(gameState, CheckersModule.getCaptureMoves(), beurt);
                 } else {
                     console.log("could not save to database");
                 }
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 isUpdating = false; // set the flag to false after the update
             }
         });
-        
+
     })
     connection.start().then(function () {
         console.log("SignalR Connected");
@@ -73,19 +73,21 @@ var CheckersModule = (function () {
         return circleDiv;
     }
 
-    function addMoveListener(i, squareDiv, isCapture) {
+    function addMoveListener(i, squareDiv, isCapture, enemyPos) {
         var circleDiv = createCircleDiv();
         circleDiv.addEventListener('click', function () {
-            movePiece(i, squareDiv, isCapture);
+            movePiece(i, squareDiv, isCapture, enemyPos);
         });
         squareDiv.appendChild(circleDiv);
     }
 
-    function checkMove(index, i, isCapture) {
+    //index contains the row and col of the new square, i is the index of the current square.
+    //enemyPos contains the row and col of the enemy position when a capture move gets made
+    function checkMove(index, i, isCapture, enemyPos = null) {
         if (index !== null && index.row >= 0 && index.row < 8 && index.col >= 0 && index.col < 8 && gameStateArray[index.row][index.col] === 0) {
             var squareDiv = CheckersModule.getShadowRoot().querySelector('#square' + (index.row * 8 + index.col));
-            addMoveListener(i, squareDiv, isCapture);
-            return { "squareDiv": squareDiv, "isCapture": true };
+            addMoveListener(i, squareDiv, isCapture, enemyPos);
+            return { "squareDiv": squareDiv, "isCapture": isCapture };
         }
     }
 
@@ -124,7 +126,9 @@ var CheckersModule = (function () {
         // If there are capture moves available, only allow them
         if (captureMoves.length > 0) {
             captureMoves.forEach(function (index) {
-                var move = checkMove(index, i, true); // isCapture = true
+                ind = { row: index.row, col: index.col };
+                enemyPos = { row: index.enemyRow, col: index.enemyCol };
+                var move = checkMove(ind, i, true, enemyPos); // isCapture = true
                 if (move) {
                     CheckersModule.setGlobalCaptureMoves([...CheckersModule.getGlobalCaptureMoves(), move]); // Save to global array
                 }
@@ -149,6 +153,7 @@ var CheckersModule = (function () {
             console.log("its not your turn!    " + CheckersModule.getCurrentTurn());
             return;
         }
+        CheckersModule.removeAvailableMovePositions();
         // Run the recursive diagonal checker for promoted pieces
         checkDiagonalMoves(i, 1, 1, gameState); // Right-down
         checkDiagonalMoves(i, 1, -1, gameState); // Right-up
@@ -156,7 +161,9 @@ var CheckersModule = (function () {
         checkDiagonalMoves(i, -1, -1, gameState); // Left-up
     }
 
-    function movePiece(i, squareDiv, isCapture) {
+    //i contains the current piece location
+    //square div contains the new location
+    function movePiece(i, squareDiv, isCapture, enemyPos) {
         if (isUpdating) {
             console.log('Game state is updating, please wait...');
             return;
@@ -194,8 +201,8 @@ var CheckersModule = (function () {
 
         // Handle capture logic
         if (isCapture) {
-            var enemyRow = (Math.floor(square.id.slice(6) / 8) + Math.floor(i / 8)) / 2;
-            var enemyCol = (square.id.slice(6) % 8 + i % 8) / 2;
+            var enemyRow = enemyPos.row;
+            var enemyCol = enemyPos.col;
             CheckersModule.getGameStateArray()[enemyRow][enemyCol] = 0;
             var enemySquare = document.querySelector('#shadowHost').shadowRoot.querySelector('#square' + (enemyRow * 8 + enemyCol));
             enemySquare.removeChild(enemySquare.firstChild);
@@ -209,12 +216,21 @@ var CheckersModule = (function () {
         CheckersModule.setGameStateArray(CheckersModule.getGameStateArray().flat().join(''));
 
         // Call check for additional capture after the first capture
-        checkForAdditionalCapture(squareDiv, isCapture);
+        if (isCapture) {
+            //call the new checkForAdditionalPromotedCapture function here in case the piece is promoted, else call the original checkForAdditionalCapture
+            if (pieceState == 3 || pieceState == 4) {
+                checkForAdditionalPromotedCaptures(squareDiv, CheckersModule.getGebruiker(), CheckersModule.getSpelers(), isCapture);
+            }
+            checkForAdditionalCapture(squareDiv, isCapture);
+        }
+        else {
+            CheckersModule.setGlobalCaptureMoves([]); // Reset global capture moves after the first capture
+        }
 
         // If additional capture exists, update moves accordingly
         if (CheckersModule.getGlobalCaptureMoves().length > 0) {
             // Removed adding grey circles
-            var possibleMoves = CheckersModule.getPossibleNormalMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
+            //var possibleMoves = CheckersModule.getPossibleNormalMoves(i, CheckersModule.getGameState(), CheckersModule.getGebruiker(), CheckersModule.getSpelers());
             // Logic to add moves without grey circles
 
             // Update the game state for the database here after processing additional captures
@@ -230,6 +246,26 @@ var CheckersModule = (function () {
             connection.invoke("NotifyPlayerMoved", CheckersModule.getGameState(), CheckersModule.getCurrentTurn()).catch(function (err) {
                 console.error(err.toString());
             });
+        }
+    }
+
+    function checkForPossiblePromotedCapture(ogPos, enemyPos, dirX, dirY, gameState) {
+        var gebruiker = CheckersModule.getGebruiker();
+        var spelers = CheckersModule.getSpelers();
+        var row = Math.floor(ogPos / 8);
+        var col = ogPos % 8;
+        var enemyRow = Math.floor(enemyPos / 8);
+        var enemyCol = enemyPos % 8;
+        var jumpRow = enemyRow + dirX;
+        var jumpCol = enemyCol + dirY;
+        var jumpPos = CheckersModule.getGameStateArray()[jumpRow][jumpCol];
+        if ((gebruiker === spelers[0] && (gameState.charAt(enemyPos) == 2 || gameState.charAt(enemyPos) == 4) ||
+            (gebruiker === spelers[1] && (gameState.charAt(enemyPos) == 1 || gameState.charAt(enemyPos) == 3))) && jumpPos === 0) {
+                //enemy piece has been found, check if the next square is empty, and add a listener
+            CheckersModule.checkMove({ row: jumpRow, col: jumpCol }, ogPos, true, { row: enemyRow, col: enemyCol });
+        } else {
+            //friendly piece encountered, or no free space behind the detected piece, no further action taken
+            return;
         }
     }
 
@@ -266,7 +302,7 @@ var CheckersModule = (function () {
                 gameStateArray[jumpRow][jumpCol] === 0  // Ensure the destination is empty
             ) {
                 var squareDiv = CheckersModule.getShadowRoot().querySelector('#square' + (jumpRow * 8 + jumpCol));
-                possibleCaptures.push({ row: jumpRow, col: jumpCol });
+                possibleCaptures.push({ row: jumpRow, col: jumpCol, enemyRow: newRow, enemyCol: newCol });
             }
         });
 
@@ -361,6 +397,7 @@ var CheckersModule = (function () {
         movePiece: movePiece,
         GameStateArrayToGameState: GameStateArrayToGameState,
         checkForPossibleCaptures: checkForPossibleCaptures,
+        checkForPossiblePromotedCapture: checkForPossiblePromotedCapture,
         checkMove: checkMove
     };
 })();
@@ -434,10 +471,10 @@ function placePieces(gameState, spelers, gebruiker, Id, captureMoves, ct) {
     }
 }
 
-function checkDiagonalMoves(currentPosition, horizontal, vertical, gameState) {
-    
-    let row = Math.floor(currentPosition / 8);
-    let col = currentPosition % 8;
+function checkDiagonalMoves(originalPosition, horizontal, vertical, gameState) {
+
+    let row = Math.floor(originalPosition / 8);
+    let col = originalPosition % 8;
     let nextRow = row + vertical;
     let nextCol = col + horizontal;
 
@@ -448,9 +485,9 @@ function checkDiagonalMoves(currentPosition, horizontal, vertical, gameState) {
         if (squareState === 0) {
             // Call checkMove for legitimate empty squares
             let index = { row: nextRow, col: nextCol };
-            CheckersModule.checkMove(index, currentPosition, false); // false since it's not a capture
+            CheckersModule.checkMove(index, originalPosition, false); // false since it's not a capture
         } else {
-            // Stop if we encounter any piece
+            CheckersModule.checkForPossiblePromotedCapture(originalPosition, nextPosition, vertical, horizontal, gameState);
             break;
         }
 
@@ -458,6 +495,64 @@ function checkDiagonalMoves(currentPosition, horizontal, vertical, gameState) {
         nextRow += vertical;
         nextCol += horizontal;
     }
+}
+
+function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious) {
+    if (!capturedPrevious) {
+        console.log("No capture move possible this turn");
+        return;
+    }
+    i = parseInt(i.id.replace('square', ''));
+    var row = Math.floor(i / 8);
+    var col = i % 8;
+    var captureMoves = [];
+
+    // Directions for diagonals (row and col increments for diagonal directions)
+    var directions = [
+        { rowDir: 1, colDir: 1 },  // Down-right
+        { rowDir: 1, colDir: -1 }, // Down-left
+        { rowDir: -1, colDir: 1 }, // Up-right
+        { rowDir: -1, colDir: -1 } // Up-left
+    ];
+
+    directions.forEach(function (direction) {
+        if (captureMoves.length > 0) {
+            CheckersModule.setGlobalCaptureMoves(captureMoves);
+            return;
+        }
+        var currentRow = row + direction.rowDir;
+        var currentCol = col + direction.colDir;
+        var capturableEnemy = null;
+
+        // Keep moving diagonally until out of bounds or encountering a piece
+        while (currentRow >= 0 && currentRow < 8 && currentCol >= 0 && currentCol < 8) {
+            var squareState = CheckersModule.getGameStateArray()[currentRow][currentCol];
+
+            if (squareState === 0) {
+                // Empty square, keep going
+                currentRow += direction.rowDir;
+                currentCol += direction.colDir;
+                continue;
+            } else if (capturableEnemy === null && speler === spelers[0] && (squareState === 2 || squareState === 4) || speler === spelers[1] && (squareState === 1 || squareState === 3)) {
+                // Found an enemy piece, check if we can capture it
+                capturableEnemy = { row: currentRow, col: currentCol };
+            } else if (capturableEnemy !== null && CheckersModule.getGameStateArray()[currentRow + direction.rowDir][currentCol + direction.colDir] === 0) {
+                // Empty square after the enemy piece, valid capture move
+                captureMoves.push({
+                    captureRow: capturableEnemy.row,
+                    captureCol: capturableEnemy.col,
+                    moveRow: currentRow,
+                    moveCol: currentCol
+                });
+                
+                break;
+            } else {
+                // Encountered a friendly piece or another blocking piece, stop searching this direction
+                break;
+            }
+        }
+    });
+    CheckersModule.setGlobalCaptureMoves(captureMoves);
 }
 
 function checkForAdditionalCapture(squareDiv, capturedPrevious) {
