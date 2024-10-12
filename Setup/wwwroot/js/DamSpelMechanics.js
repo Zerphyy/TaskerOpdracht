@@ -261,7 +261,7 @@ var CheckersModule = (function () {
         var jumpPos = CheckersModule.getGameStateArray()[jumpRow][jumpCol];
         if ((gebruiker === spelers[0] && (gameState.charAt(enemyPos) == 2 || gameState.charAt(enemyPos) == 4) ||
             (gebruiker === spelers[1] && (gameState.charAt(enemyPos) == 1 || gameState.charAt(enemyPos) == 3))) && jumpPos === 0) {
-                //enemy piece has been found, check if the next square is empty, and add a listener
+            //enemy piece has been found, check if the next square is empty, and add a listener
             CheckersModule.checkMove({ row: jumpRow, col: jumpCol }, ogPos, true, { row: enemyRow, col: enemyCol });
         } else {
             //friendly piece encountered, or no free space behind the detected piece, no further action taken
@@ -469,6 +469,9 @@ function placePieces(gameState, spelers, gebruiker, Id, captureMoves, ct) {
             })(i, squareDiv);
         }
     }
+    //check if a player captured all enemy pieces
+    //if yes, end game
+    piecesLeftOnBoard();
 }
 
 function checkDiagonalMoves(originalPosition, horizontal, vertical, gameState) {
@@ -544,7 +547,7 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
                     moveRow: currentRow,
                     moveCol: currentCol
                 });
-                
+
                 break;
             } else {
                 // Encountered a friendly piece or another blocking piece, stop searching this direction
@@ -628,11 +631,6 @@ function checkForAdditionalCapture(squareDiv, capturedPrevious) {
         CheckersModule.setGlobalCaptureMoves([]); // Clear the globalCaptureArray
     }
 }
-
-
-
-
-
 function UpdateBoard(gameState, captureMoves, currentTurn) {
     // Iterate over each square and remove its child nodes
     for (let i = 0; i < 64; i++) { // Adjust the range according to your board size
@@ -644,6 +642,24 @@ function UpdateBoard(gameState, captureMoves, currentTurn) {
 
     // Place new pieces according to the gameState
     placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker(), CheckersModule.getGameId(), captureMoves, currentTurn);
+}
+function piecesLeftOnBoard() {
+    var gameState = CheckersModule.getGameState();
+
+    // Check if both players still have pieces
+    if ((gameState.includes('1') || gameState.includes('3')) && (gameState.includes('2') || gameState.includes('4'))) {
+        return; // No one has won yet
+    }
+    // Check if Speler 0 has pieces but Speler 1 doesn't
+    else if ((gameState.includes('1') || gameState.includes('3')) && !(gameState.includes('2') || gameState.includes('4'))) {
+        alert('Speler 0 heeft gewonnen!');
+        window.location.href = '/Home/'; // Redirect after the alert
+    }
+    // Check if Speler 1 has pieces but Speler 0 doesn't
+    else if (!(gameState.includes('1') || gameState.includes('3')) && (gameState.includes('2') || gameState.includes('4'))) {
+        alert('Speler 1 heeft gewonnen!');
+        window.location.href = '/Home/'; // Redirect after the alert
+    }
 }
 window.onload = function () {
     var spelersArray = JSON.parse('@Html.Raw(ViewBag.Spelers)');
