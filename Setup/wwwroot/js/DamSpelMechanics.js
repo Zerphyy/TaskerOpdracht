@@ -220,8 +220,9 @@ var CheckersModule = (function () {
             //call the new checkForAdditionalPromotedCapture function here in case the piece is promoted, else call the original checkForAdditionalCapture
             if (pieceState == 3 || pieceState == 4) {
                 checkForAdditionalPromotedCaptures(squareDiv, CheckersModule.getGebruiker(), CheckersModule.getSpelers(), isCapture);
+            } else {
+                checkForAdditionalCapture(squareDiv, isCapture);
             }
-            checkForAdditionalCapture(squareDiv, isCapture);
         }
         else {
             CheckersModule.setGlobalCaptureMoves([]); // Reset global capture moves after the first capture
@@ -469,9 +470,6 @@ function placePieces(gameState, spelers, gebruiker, Id, captureMoves, ct) {
             })(i, squareDiv);
         }
     }
-    //check if a player captured all enemy pieces
-    //if yes, end game
-    piecesLeftOnBoard();
 }
 
 function checkDiagonalMoves(originalPosition, horizontal, vertical, gameState) {
@@ -519,10 +517,6 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
     ];
 
     directions.forEach(function (direction) {
-        if (captureMoves.length > 0) {
-            CheckersModule.setGlobalCaptureMoves(captureMoves);
-            return;
-        }
         var currentRow = row + direction.rowDir;
         var currentCol = col + direction.colDir;
         var capturableEnemy = null;
@@ -544,8 +538,8 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
                 captureMoves.push({
                     captureRow: capturableEnemy.row,
                     captureCol: capturableEnemy.col,
-                    moveRow: currentRow,
-                    moveCol: currentCol
+                    moveRow: currentRow + direction.rowDir,
+                    moveCol: currentCol + direction.colDir
                 });
 
                 break;
@@ -642,6 +636,9 @@ function UpdateBoard(gameState, captureMoves, currentTurn) {
 
     // Place new pieces according to the gameState
     placePieces(gameState, CheckersModule.getSpelers(), CheckersModule.getGebruiker(), CheckersModule.getGameId(), captureMoves, currentTurn);
+    //check if a player captured all enemy pieces
+    //if yes, end game
+    piecesLeftOnBoard();
 }
 function piecesLeftOnBoard() {
     var gameState = CheckersModule.getGameState();
