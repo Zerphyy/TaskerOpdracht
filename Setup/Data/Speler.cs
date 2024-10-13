@@ -15,14 +15,17 @@ namespace Setup.Data
         [Required]
         [PasswordPropertyText]
         public string Wachtwoord { get; set; }
-
+        public string SpellenGespeeld { get; set; }
+        public string SpellenGewonnen { get; set; }
         public Speler() { }
-        public Speler(int Id, string naam, string email, string wachtwoord)
+        public Speler(int Id, string naam, string email, string wachtwoord, string spellenGespeeld, string spellenGewonnen)
         {
             this.ID = Id;
             this.Email = email;
             this.Naam = naam;
             this.Wachtwoord = wachtwoord;
+            this.SpellenGespeeld = spellenGespeeld;
+            this.SpellenGewonnen = spellenGewonnen;
         }
     }
 }
