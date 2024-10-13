@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using System.Security.Claims;
 
 namespace Setup.Controllers
 {
+    [Authorize]
     [Controller]
     public class DammenController : Controller
     {

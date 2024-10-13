@@ -56,6 +56,11 @@ namespace Setup.Controllers
                             AllowRefresh = false,
                             IsPersistent = loginModel.StayLoggedIn
                         };
+                        if (loginModel.StayLoggedIn)
+                        {
+                            // Set a longer expiration time for persistent login
+                            properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30); // e.g., 30 days
+                        }
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                             new ClaimsPrincipal(claimsIdentity), properties);
                         return RedirectToAction("Index", "Home");
