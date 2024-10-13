@@ -212,6 +212,76 @@ namespace Setup.Controllers
                 }
             }
         }
+        [HttpPost]
+        public IActionResult ProcessWin(string gameId, string winner, string[] players, string caller)
+        {
+            if (caller != winner)
+            {
+                return Json(new { success = false, message = "Wrong player sent the call!" });
+            } else
+            {
+                using (_context)
+                {
+                    DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
+                    if (spel == null)
+                    {
+                        return Json(new { success = false, message = "Spel kon niet worden gevonden." });
+                    }
+                    else
+                    {
+                        DatabaseSaving(spel, _context, "Remove");
+                    }
+                    Gebruiker? spelerWinner = _context.Speler?.Find(winner);
+                    Gebruiker? spelerLoser = _context.Speler?.Find(winner == players[0] ? players[1] : players[0]);
+                    GebruikerStats? spelerStatsWinner = _context.SpelerStats?.Find(winner);
+                    GebruikerStats? spelerStatsLoser = _context.SpelerStats?.Find(winner == players[0] ? players[1] : players[0]);
+
+                    if (spelerStatsWinner != null && spelerWinner != null && winner == spelerWinner.Email)
+                    {
+                        spelerStatsWinner.AantalSpellen += 1;
+                        spelerStatsWinner.AantalGewonnen += 1;
+                        spelerStatsWinner.WinLossRatio = spelerStatsWinner.AantalVerloren != 0 ? (spelerStatsWinner.AantalGewonnen / spelerStatsWinner.AantalSpellen) * 100 : 100;
+                        DatabaseSaving(spelerStatsWinner, _context, "Update");
+                    }
+                    if (spelerStatsLoser != null && spelerLoser != null && winner != spelerLoser.Email)
+                    {
+                        spelerStatsLoser.AantalSpellen += 1;
+                        spelerStatsLoser.AantalVerloren += 1;
+                        spelerStatsLoser.WinLossRatio = (spelerStatsLoser.AantalGewonnen / spelerStatsLoser.AantalSpellen) * 100;
+                        DatabaseSaving(spelerStatsLoser, _context, "Update");
+                    }
+
+                    //create stats fields if either one or both playerstats dont exist
+                    if (spelerStatsWinner == null && spelerWinner != null && spelerWinner.Email == winner)
+                    {
+                        GebruikerStats winnaar = new GebruikerStats
+                        {
+                            Speler = spelerWinner.Email,
+                            AantalSpellen = 1,
+                            AantalGewonnen = 1,
+                            AantalVerloren = 0,
+                            WinLossRatio = 100
+                        };
+                        DatabaseSaving(winnaar, _context, "Add");
+                    }
+                    if (spelerStatsLoser == null && spelerLoser != null && spelerLoser.Email != winner)
+                    {
+                        GebruikerStats loser = new GebruikerStats
+                        {
+                            Speler = spelerLoser.Email,
+                            AantalSpellen = 1,
+                            AantalGewonnen = 0,
+                            AantalVerloren = 1,
+                            WinLossRatio = 0
+                        };
+                        DatabaseSaving(loser, _context, "Add");
+                    }
+
+                    return Json(new { success = true });
+                }
+            }
+            
+        }
     }
     public class GameData
     {

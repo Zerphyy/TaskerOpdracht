@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .withUrl("/gameHub")
         .build();
     connection.on("PlayerMoved", function (gameState, beurt) {
-        console.log("hallo!");
         $.ajax({
             url: '/Dammen/UpdateBoardData',
             method: 'POST',
@@ -23,6 +22,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log("could not save to database");
                 }
                 isUpdating = false; // set the flag to false after the update
+            },
+            error: function (error) {
+                console.error('Error:', error);
+                isUpdating = false; // set the flag to false after the update
+            }
+        });
+
+    })
+    connection.on("PlayerWon", function (player) {
+        $.ajax({
+            url: '/Dammen/ProcessWin',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                gameId: CheckersModule.getGameId(),
+                winner: player,
+                players: CheckersModule.getSpelers(),
+                caller: CheckersModule.getGebruiker()
+            },
+            success: function (result) {
+                if (result.success) {
+                    window.location.href = '/Home/'; // Redirect after the alert
+                } else {
+                    console.log("could not save to database");
+                }
             },
             error: function (error) {
                 console.error('Error:', error);
@@ -549,6 +573,9 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
             }
         }
     });
+    if (captureMoves === []) {
+        CheckersModule.setLastCapturingPiece(null);
+    }
     CheckersModule.setGlobalCaptureMoves(captureMoves);
 }
 
@@ -649,13 +676,18 @@ function piecesLeftOnBoard() {
     }
     // Check if Speler 0 has pieces but Speler 1 doesn't
     else if ((gameState.includes('1') || gameState.includes('3')) && !(gameState.includes('2') || gameState.includes('4'))) {
+        connection.invoke("NotifyPlayerWon", CheckersModule.getSpelers()[0]).catch(function (err) {
+            console.error(err.toString());
+        });
         alert('Speler 0 heeft gewonnen!');
-        window.location.href = '/Home/'; // Redirect after the alert
+        
     }
     // Check if Speler 1 has pieces but Speler 0 doesn't
     else if (!(gameState.includes('1') || gameState.includes('3')) && (gameState.includes('2') || gameState.includes('4'))) {
+        connection.invoke("NotifyPlayerWon", CheckersModule.getSpelers()[1]).catch(function (err) {
+            console.error(err.toString());
+        });
         alert('Speler 1 heeft gewonnen!');
-        window.location.href = '/Home/'; // Redirect after the alert
     }
 }
 window.onload = function () {

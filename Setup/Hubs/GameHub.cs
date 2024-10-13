@@ -12,5 +12,9 @@ namespace Setup.Hubs
         {
             await Clients.All.SendAsync("PlayerMoved", gameState, beurt);
         }
+        public async Task NotifyPlayerWon(string player)
+        {
+            await Clients.All.SendAsync("PlayerWon", player);
+        }
     }
 }

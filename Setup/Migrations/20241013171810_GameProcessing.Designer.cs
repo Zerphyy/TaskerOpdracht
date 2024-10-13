@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Setup.Data;
 
@@ -11,9 +12,10 @@ using Setup.Data;
 namespace Setup.Migrations
 {
     [DbContext(typeof(WebpageDBContext))]
-    partial class WebpageDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241013171810_GameProcessing")]
+    partial class GameProcessing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -409,8 +411,11 @@ namespace Setup.Migrations
 
             modelBuilder.Entity("Setup.Data.GebruikerStats", b =>
                 {
-                    b.Property<string>("Speler")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
                     b.Property<int>("AantalGewonnen")
                         .HasColumnType("int");
@@ -421,10 +426,15 @@ namespace Setup.Migrations
                     b.Property<int>("AantalVerloren")
                         .HasColumnType("int");
 
+                    b.Property<string>("SpelerEmail")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("WinLossRatio")
                         .HasColumnType("int");
 
-                    b.HasKey("Speler");
+                    b.HasKey("ID");
+
+                    b.HasIndex("SpelerEmail");
 
                     b.ToTable("SpelerStats");
                 });
@@ -478,6 +488,15 @@ namespace Setup.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Setup.Data.GebruikerStats", b =>
+                {
+                    b.HasOne("Setup.Data.Gebruiker", "Speler")
+                        .WithMany()
+                        .HasForeignKey("SpelerEmail");
+
+                    b.Navigation("Speler");
                 });
 #pragma warning restore 612, 618
         }
