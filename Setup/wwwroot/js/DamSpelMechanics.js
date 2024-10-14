@@ -540,7 +540,7 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
             }
         }
     });
-    if (captureMoves === []) {
+    if (!captureMoves.length > 0) {
         CheckersModule.setLastCapturingPiece(null);
     }
     CheckersModule.setGlobalCaptureMoves(captureMoves);

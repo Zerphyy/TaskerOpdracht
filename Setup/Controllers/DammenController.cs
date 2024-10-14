@@ -240,14 +240,14 @@ namespace Setup.Controllers
                     {
                         spelerStatsWinner.AantalSpellen += 1;
                         spelerStatsWinner.AantalGewonnen += 1;
-                        spelerStatsWinner.WinLossRatio = spelerStatsWinner.AantalVerloren != 0 ? (spelerStatsWinner.AantalGewonnen / spelerStatsWinner.AantalSpellen) * 100 : 100;
+                        spelerStatsWinner.WinLossRatio = spelerStatsWinner.AantalVerloren != 0 ? (100 / (spelerStatsWinner.AantalGewonnen + spelerStatsWinner.AantalVerloren)) * spelerStatsWinner.AantalGewonnen : 100;
                         DatabaseSaving(spelerStatsWinner, _context, "Update");
                     }
                     if (spelerStatsLoser != null && spelerLoser != null && winner != spelerLoser.Email)
                     {
                         spelerStatsLoser.AantalSpellen += 1;
                         spelerStatsLoser.AantalVerloren += 1;
-                        spelerStatsLoser.WinLossRatio = (spelerStatsLoser.AantalGewonnen / spelerStatsLoser.AantalSpellen) * 100;
+                        spelerStatsLoser.WinLossRatio = (100 / (spelerStatsLoser.AantalGewonnen + spelerStatsLoser.AantalVerloren)) * spelerStatsLoser.AantalGewonnen;
                         DatabaseSaving(spelerStatsLoser, _context, "Update");
                     }
 

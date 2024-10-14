@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Setup.Controllers
 {
@@ -43,6 +44,27 @@ namespace Setup.Controllers
             //TODO: voeg recaptcha verificatie toe, maak form submitten mogelijk, etc.
             UpdatePageViewCookie();
             return View();
+        }
+        public IActionResult Profile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId != null)
+            {
+                var gebruikers = _context.Speler?.ToList();
+                var gebruiker = gebruikers?.FirstOrDefault(g => g.Email == userId);
+                if (gebruiker != null)
+                {
+                    var gebruikerStats = _context.SpelerStats?.ToList().FirstOrDefault(g => g.Speler == gebruiker.Email);
+                    ViewBag.Naam = gebruiker.Naam;
+                    ViewBag.Email = gebruiker.Email;
+                    ViewBag.AantalGespeeld = gebruikerStats?.AantalSpellen;
+                    ViewBag.AantalGewonnen = gebruikerStats?.AantalGewonnen;
+                    ViewBag.AantalVerloren = gebruikerStats?.AantalVerloren;
+                    ViewBag.WinLossRatio = gebruikerStats?.WinLossRatio;
+                    return View(gebruiker);
+                }
+            }
+            return RedirectToAction("Index");
         }
         public async Task<IActionResult> LogOut()
         {
