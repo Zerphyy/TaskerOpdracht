@@ -57,10 +57,10 @@ namespace Setup.Controllers
                     var gebruikerStats = _context.SpelerStats?.ToList().FirstOrDefault(g => g.Speler == gebruiker.Email);
                     ViewBag.Naam = gebruiker.Naam;
                     ViewBag.Email = gebruiker.Email;
-                    ViewBag.AantalGespeeld = gebruikerStats?.AantalSpellen;
-                    ViewBag.AantalGewonnen = gebruikerStats?.AantalGewonnen;
-                    ViewBag.AantalVerloren = gebruikerStats?.AantalVerloren;
-                    ViewBag.WinLossRatio = gebruikerStats?.WinLossRatio;
+                    ViewBag.AantalGespeeld = gebruikerStats != null && gebruikerStats?.AantalSpellen != null ? gebruikerStats?.AantalSpellen : 0;
+                    ViewBag.AantalGewonnen = gebruikerStats != null && gebruikerStats?.AantalGewonnen != null ? gebruikerStats?.AantalGewonnen : 0;
+                    ViewBag.AantalVerloren = gebruikerStats != null && gebruikerStats?.AantalVerloren != null ? gebruikerStats?.AantalVerloren : 0;
+                    ViewBag.WinLossRatio = gebruikerStats != null && gebruikerStats?.WinLossRatio != null ? gebruikerStats?.WinLossRatio : 0;
                     return View(gebruiker);
                 }
             }

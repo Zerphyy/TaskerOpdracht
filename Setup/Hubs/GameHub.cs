@@ -16,5 +16,13 @@ namespace Setup.Hubs
         {
             await Clients.All.SendAsync("PlayerWon", player);
         }
+        public async Task RemoveUser(string userId)
+        {
+            var connection = Context.UserIdentifier;
+            if (connection == userId)
+            {
+                await Clients.User(userId).SendAsync("Removed");
+            }
+        }
     }
 }

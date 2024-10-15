@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Setup;
 using Setup.Data;
 using Setup.Hubs;
 using System.Runtime.InteropServices;
@@ -72,6 +73,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();
+
+app.UseMiddleware<UserRoleMiddleware>();
 
 app.MapHub<GameHub>("/gameHub");
 app.MapControllerRoute(
