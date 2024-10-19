@@ -527,23 +527,26 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
             if (squareState === 0) {
                 currentRow += direction.rowDir;
                 currentCol += direction.colDir;
-                continue;
-            } else if (capturableEnemy === null && speler === spelers[0] && (squareState === 2 || squareState === 4) || speler === spelers[1] && (squareState === 1 || squareState === 3)) {
+            }
+            else if (capturableEnemy === null && speler === spelers[0] && (squareState === 2 || squareState === 4) || speler === spelers[1] && (squareState === 1 || squareState === 3)) {
                 capturableEnemy = { row: currentRow, col: currentCol };
-            } else if (capturableEnemy !== null &&
-                (currentRow + direction.rowDir >= 0 && currentRow + direction.rowDir < 8 && currentCol + direction.colDir >= 0 && currentCol + direction.colDir < 8)) {
+            }
+            else if (capturableEnemy !== null && (currentRow + direction.rowDir >= 0 && currentRow + direction.rowDir < 8) && (currentCol + direction.colDir >= 0 && currentCol + direction.colDir < 8)) {
                 if (CheckersModule.gameStateArray[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
-                    captureMoves.push({
-                        captureRow: capturableEnemy.row,
-                        captureCol: capturableEnemy.col,
-                        moveRow: currentRow + direction.rowDir,
-                        moveCol: currentCol + direction.colDir
-                    });
-
+                    captureMoves.push(
+                        {
+                            captureRow: capturableEnemy.row,
+                            captureCol: capturableEnemy.col,
+                            moveRow: currentRow + direction.rowDir,
+                            moveCol: currentCol + direction.colDir
+                        }
+                    )
                     break;
                 } else {
                     break;
                 }
+            } else {
+                break;
             }
         }
     });
