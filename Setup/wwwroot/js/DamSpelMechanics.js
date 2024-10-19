@@ -532,7 +532,7 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
                 capturableEnemy = { row: currentRow, col: currentCol };
             }
             else if (capturableEnemy !== null && (currentRow + direction.rowDir >= 0 && currentRow + direction.rowDir < 8) && (currentCol + direction.colDir >= 0 && currentCol + direction.colDir < 8)) {
-                if (CheckersModule.gameStateArray[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
+                if (CheckersModule.getGameStateArray()[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
                     captureMoves.push(
                         {
                             captureRow: capturableEnemy.row,
