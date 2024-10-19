@@ -531,18 +531,19 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
             } else if (capturableEnemy === null && speler === spelers[0] && (squareState === 2 || squareState === 4) || speler === spelers[1] && (squareState === 1 || squareState === 3)) {
                 capturableEnemy = { row: currentRow, col: currentCol };
             } else if (capturableEnemy !== null &&
-                (currentRow + direction.rowDir >= 0 && currentRow + direction.rowDir < 8 && currentCol + direction.colDir >= 0 && currentCol + direction.colDir < 8) &&
-                CheckersModule.gameStateArray[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
-                captureMoves.push({
-                    captureRow: capturableEnemy.row,
-                    captureCol: capturableEnemy.col,
-                    moveRow: currentRow + direction.rowDir,
-                    moveCol: currentCol + direction.colDir
-                });
+                (currentRow + direction.rowDir >= 0 && currentRow + direction.rowDir < 8 && currentCol + direction.colDir >= 0 && currentCol + direction.colDir < 8)) {
+                if (CheckersModule.gameStateArray[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
+                    captureMoves.push({
+                        captureRow: capturableEnemy.row,
+                        captureCol: capturableEnemy.col,
+                        moveRow: currentRow + direction.rowDir,
+                        moveCol: currentCol + direction.colDir
+                    });
 
-                break;
-            } else {
-                break;
+                    break;
+                } else {
+                    break;
+                }
             }
         }
     });
@@ -638,7 +639,7 @@ function piecesLeftOnBoard() {
             console.error(err.toString());
         });
         alert('Speler 0 heeft gewonnen!');
-        
+
     }
     else if (!(gameState.includes('1') || gameState.includes('3')) && (gameState.includes('2') || gameState.includes('4'))) {
         connection.invoke("NotifyPlayerWon", CheckersModule.getSpelers()[1]).catch(function (err) {
