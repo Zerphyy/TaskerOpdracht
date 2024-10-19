@@ -264,10 +264,14 @@ var CheckersModule = (function () {
         var enemyCol = enemyPos % 8;
         var jumpRow = enemyRow + dirX;
         var jumpCol = enemyCol + dirY;
-        var jumpPos = CheckersModule.getGameStateArray()[jumpRow][jumpCol];
-        if ((gebruiker === spelers[0] && (gameState.charAt(enemyPos) == 2 || gameState.charAt(enemyPos) == 4) ||
-            (gebruiker === spelers[1] && (gameState.charAt(enemyPos) == 1 || gameState.charAt(enemyPos) == 3))) && jumpPos === 0) {
-            CheckersModule.checkMove({ row: jumpRow, col: jumpCol }, ogPos, true, { row: enemyRow, col: enemyCol });
+        if (jumpRow >= 0 && jumpRow < 8 && jumpCol >= 0 && jumpCol < 8) {
+            var jumpPos = CheckersModule.getGameStateArray()[jumpRow][jumpCol];
+            if ((gebruiker === spelers[0] && (gameState.charAt(enemyPos) == 2 || gameState.charAt(enemyPos) == 4) ||
+                (gebruiker === spelers[1] && (gameState.charAt(enemyPos) == 1 || gameState.charAt(enemyPos) == 3))) && jumpPos === 0) {
+                CheckersModule.checkMove({ row: jumpRow, col: jumpCol }, ogPos, true, { row: enemyRow, col: enemyCol });
+            } else {
+                return;
+            }
         } else {
             return;
         }
