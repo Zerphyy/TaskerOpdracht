@@ -1,0 +1,24 @@
+﻿<meta charset="UTF-8">
+<h1>Profiel van @ViewBag.Naam</h1>
+<link rel="stylesheet" href="~/css/style.css">
+<div>
+    Email: @ViewBag.Email
+</div>
+<div class="data-container">
+    <div class="item">
+        <div class="title">Aantal damspellen gespeeld</div>
+        <div class="data"> @ViewBag.AantalGespeeld</div>
+    </div>
+    <div class="item">
+        <div class="title">Aantal damspellen gewonnen</div>
+        <div class="data">@ViewBag.AantalGewonnen</div>
+    </div>
+    <div class="item">
+        <div class="title">Aantal damspellen verloren</div>
+        <div class="data">@ViewBag.AantalVerloren</div>
+    </div>
+    <div class="item">
+        <div class="title">Win/Verlies-ratio</div>
+        <div class="data">@ViewBag.WinLossRatio</div>
+    </div>
+</div>

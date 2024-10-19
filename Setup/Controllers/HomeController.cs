@@ -5,10 +5,7 @@ using SendGrid;
 using Setup.Data;
 using Setup.Models;
 using System.Diagnostics;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -20,12 +17,14 @@ namespace Setup.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly WebpageDBContext _context;
 
         private const string PageViews = "PageViews";
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, WebpageDBContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -45,6 +44,27 @@ namespace Setup.Controllers
             //TODO: voeg recaptcha verificatie toe, maak form submitten mogelijk, etc.
             UpdatePageViewCookie();
             return View();
+        }
+        public IActionResult Profile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId != null)
+            {
+                var gebruikers = _context.Speler?.ToList();
+                var gebruiker = gebruikers?.FirstOrDefault(g => g.Email == userId);
+                if (gebruiker != null)
+                {
+                    var gebruikerStats = _context.SpelerStats?.ToList().FirstOrDefault(g => g.Speler == gebruiker.Email);
+                    ViewBag.Naam = gebruiker.Naam;
+                    ViewBag.Email = gebruiker.Email;
+                    ViewBag.AantalGespeeld = gebruikerStats != null && gebruikerStats?.AantalSpellen != null ? gebruikerStats?.AantalSpellen : 0;
+                    ViewBag.AantalGewonnen = gebruikerStats != null && gebruikerStats?.AantalGewonnen != null ? gebruikerStats?.AantalGewonnen : 0;
+                    ViewBag.AantalVerloren = gebruikerStats != null && gebruikerStats?.AantalVerloren != null ? gebruikerStats?.AantalVerloren : 0;
+                    ViewBag.WinLossRatio = gebruikerStats != null && gebruikerStats?.WinLossRatio != null ? gebruikerStats?.WinLossRatio : 0;
+                    return View(gebruiker);
+                }
+            }
+            return RedirectToAction("Index");
         }
         public async Task<IActionResult> LogOut()
         {
@@ -77,12 +97,12 @@ namespace Setup.Controllers
                 //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
                 //db connectie opzetten
-                using (var dbContext = new WebpageDBContext())
+                using (_context)
                 {
                     //data toevoegen aan ContactData tabel
-                    dbContext.ContactData.Add(model);
+                    _context.ContactData.Add(model);
                     //db opslaanS
-                    dbContext.SaveChanges();
+                    _context.SaveChanges();
                 }
                     return RedirectToAction("Index");
             }

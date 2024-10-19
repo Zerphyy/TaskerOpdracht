@@ -1,43 +1,55 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
 using Setup.Data;
+using Setup.Hubs;
 using System.Security.Claims;
 
 namespace Setup.Controllers
 {
+    [Authorize]
     [Controller]
     public class DammenController : Controller
     {
+        private readonly IHubContext<GameHub> _hubContext;
+        private readonly WebpageDBContext _context;
+        private static Dictionary<string, DateTime> userLastCreationTime = new Dictionary<string, DateTime>();
+
+
+        public DammenController(IHubContext<GameHub> hubContext, WebpageDBContext context)
+        {
+            _hubContext = hubContext;
+            _context = context;
+        }
         // GET: DammenController
         public ActionResult Index()
         {
-            var dbContext = new WebpageDBContext();
-            var damSpellen = dbContext.DamSpel?.ToList();
-            var spelers = dbContext.Speler?.ToList();
-            var damBordVakjes = dbContext.DamBordVakje?.ToList();
+            var damSpellen = _context.DamSpel?.ToList();
+            var spelers = _context.Speler?.ToList();
             ViewBag.Spelers = spelers;
             ViewBag.DamSpellen = damSpellen;
-            ViewBag.DamBordVakjes = damBordVakjes;
             return View();
         }
         public ActionResult Spel(int id)
         {
-            using (var context = new WebpageDBContext())
-            {
-                DamSpel? damSpel = context.DamSpel?.Find(id);
+                DamSpel? damSpel = _context.DamSpel?.Find(id);
                 if (damSpel != null)
                 {
+                    string[] spelers = { damSpel.Creator, (damSpel.Deelnemer != null ? damSpel.Deelnemer : "") };
+                    var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    ViewBag.Spelers = JsonConvert.SerializeObject(spelers);
+                    ViewBag.Gebruiker = gebruiker;
+                    ViewBag.BordStand = damSpel.BordStand;
+                    ViewBag.Id = damSpel.Id;
+                    ViewBag.AanZet = damSpel.AanZet;
                     return View(damSpel);
-                } else
+                }
+                else
                 {
                     return RedirectToAction("Index");
                 }
-            }
-        }
-
-        // GET: DammenController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
         }
 
         // GET: DammenController/Create
@@ -48,15 +60,25 @@ namespace Setup.Controllers
 
         // POST: DammenController/Create
         [HttpPost]
-        public ActionResult Create(DamSpel model)
+        public async Task<IActionResult> Create(DamSpel model)
         {
-            using (var dbContext = new WebpageDBContext())
+            string userId = model.Creator == null ? User.FindFirstValue(ClaimTypes.NameIdentifier) : model.Creator;
+            if (userLastCreationTime.ContainsKey(userId))
             {
-                DamBord bord = new DamBord(0);
-                DatabaseSaving(bord, dbContext, "Add");
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false);
-                DatabaseSaving(spel, dbContext, "Add");
-
+                DateTime lastCreationTime = userLastCreationTime[userId];
+                if ((DateTime.UtcNow - lastCreationTime).TotalMilliseconds < 300)
+                {
+                    return Json(new { success = false, message = "You can only create one game per second." });
+                }
+            }
+            userLastCreationTime[userId] = DateTime.UtcNow;
+            DamBord bord = new DamBord(0);
+            DatabaseSaving(bord, _context, "Add");
+            DamSpel spel = new DamSpel(0, model.SpelNaam, null, userId, null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020", userId);
+            DatabaseSaving(spel, _context, "Add");
+            if (model.Creator == null)
+            {
+                await _hubContext.Clients.All.SendAsync("GameListChanged");
             }
             return RedirectToAction("Index");
         }
@@ -83,22 +105,20 @@ namespace Setup.Controllers
         }
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(DamSpel? spel)
         {
-            using (var dbContext = new WebpageDBContext())
-            {
-                DamSpel? spel = dbContext.DamSpel?.Find(id);
-                if (spel == null)
+                DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
+                if (damSpel == null)
                 {
                     return Json(new { success = false, message = "Spel kon niet worden gevonden." });
                 }
-                DatabaseSaving(spel, dbContext, "Remove");
-            }
+                DatabaseSaving(damSpel, _context, "Remove");
             return Json(new { success = true });
         }
         private void DatabaseSaving(object obj, WebpageDBContext context, string type)
         {
-            switch (type) {
+            switch (type)
+            {
                 case "Add":
                     context.Add(obj);
                     context.SaveChanges();
@@ -134,26 +154,120 @@ namespace Setup.Controllers
                     }
                     return Json(new { success = false, message = "Deze game zit al vol!" });
                 }
-                using (var context = new WebpageDBContext())
-                {
-                    DamSpel? damSpel = context.DamSpel?.Find(spel.Id);
+                    DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
                     if (damSpel != null)
                     {
                         damSpel.Deelnemer = speler2;
-                        DatabaseSaving(damSpel, context, "Update");
+                        DatabaseSaving(damSpel, _context, "Update");
                         return Json(new { success = true, id = spel.Id });
-                    } else
+                    }
+                    else
                     {
                         return Json(new { success = false, message = "Dit spel kon niet gevonden worden." });
                     }
-                }
             }
             else
             {
                 return Json(new { success = false, message = "Oeps! Er ging iets mis!" });
             }
         }
+        [HttpGet]
+        public IActionResult GetGameLijst()
+        {
+            var damSpellen = _context.DamSpel?.OrderBy(e => e.Id).ToList();
+            var spelers = _context.Speler?.ToList();
+            var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var lijstData = new Dictionary<string, object?>
+        {
+            { "Spellen", damSpellen },
+            { "Spelers",  spelers },
+            { "Gebruiker", gebruiker}
+        };
+            return Json(lijstData);
+        }
+        [HttpPost]
+        public IActionResult UpdateBoardData(string gameState, string gameId, string beurt)
+        {
+                DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
+                if (spel == null)
+                {
+                    return Json(new { success = false, message = "Spel kon niet worden gevonden." });
+                }
+                else
+                {
+                    spel.BordStand = gameState;
+                    spel.AanZet = beurt;
+                    DatabaseSaving(spel, _context, "Update");
+                    return Json(new { success = true });
+                }
+        }
+        [HttpPost]
+        public IActionResult ProcessWin(string gameId, string winner, string[] players, string caller)
+        {
+            if (caller != winner)
+            {
+                return Json(new { success = false, message = "Wrong player sent the call!" });
+            } else
+            {
+                    DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
+                    if (spel == null)
+                    {
+                        return Json(new { success = false, message = "Spel kon niet worden gevonden." });
+                    }
+                    else
+                    {
+                        DatabaseSaving(spel, _context, "Remove");
+                    }
+                    Gebruiker? spelerWinner = _context.Speler?.Find(winner);
+                    Gebruiker? spelerLoser = _context.Speler?.Find(winner == players[0] ? players[1] : players[0]);
+                    GebruikerStats? spelerStatsWinner = _context.SpelerStats?.Find(winner);
+                    GebruikerStats? spelerStatsLoser = _context.SpelerStats?.Find(winner == players[0] ? players[1] : players[0]);
 
+                    if (spelerStatsWinner != null && spelerWinner != null && winner == spelerWinner.Email)
+                    {
+                        spelerStatsWinner.AantalSpellen += 1;
+                        spelerStatsWinner.AantalGewonnen += 1;
+                        spelerStatsWinner.WinLossRatio = spelerStatsWinner.AantalVerloren != 0 ? (100 / (spelerStatsWinner.AantalGewonnen + spelerStatsWinner.AantalVerloren)) * spelerStatsWinner.AantalGewonnen : 100;
+                        DatabaseSaving(spelerStatsWinner, _context, "Update");
+                    }
+                    if (spelerStatsLoser != null && spelerLoser != null && winner != spelerLoser.Email)
+                    {
+                        spelerStatsLoser.AantalSpellen += 1;
+                        spelerStatsLoser.AantalVerloren += 1;
+                        spelerStatsLoser.WinLossRatio = (100 / (spelerStatsLoser.AantalGewonnen + spelerStatsLoser.AantalVerloren)) * spelerStatsLoser.AantalGewonnen;
+                        DatabaseSaving(spelerStatsLoser, _context, "Update");
+                    }
+
+                    //create stats fields if either one or both playerstats dont exist
+                    if (spelerStatsWinner == null && spelerWinner != null && spelerWinner.Email == winner)
+                    {
+                        GebruikerStats winnaar = new GebruikerStats
+                        {
+                            Speler = spelerWinner.Email,
+                            AantalSpellen = 1,
+                            AantalGewonnen = 1,
+                            AantalVerloren = 0,
+                            WinLossRatio = 100
+                        };
+                        DatabaseSaving(winnaar, _context, "Add");
+                    }
+                    if (spelerStatsLoser == null && spelerLoser != null && spelerLoser.Email != winner)
+                    {
+                        GebruikerStats loser = new GebruikerStats
+                        {
+                            Speler = spelerLoser.Email,
+                            AantalSpellen = 1,
+                            AantalGewonnen = 0,
+                            AantalVerloren = 1,
+                            WinLossRatio = 0
+                        };
+                        DatabaseSaving(loser, _context, "Add");
+                    }
+
+                    return Json(new { success = true });
+            }
+            
+        }
     }
     public class GameData
     {

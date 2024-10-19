@@ -1,0 +1,10 @@
+global using NUnit.Framework;
+global using Setup.Controllers;
+global using Setup.Hubs;
+global using Setup.Models;
+global using Setup.Data;
+global using Microsoft.AspNetCore.SignalR;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.Filters;
+global using Microsoft.AspNetCore.Authorization;

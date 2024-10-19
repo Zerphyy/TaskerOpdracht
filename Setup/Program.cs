@@ -1,13 +1,9 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Setup;
 using Setup.Data;
 using Setup.Hubs;
-using System.Configuration;
 using System.Runtime.InteropServices;
-using System.Security.Claims;
-using System.Text;
 bool staysLoggedIn = false;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -17,7 +13,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(option =>
     {
         option.LoginPath = "/Access/Login";
-        option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        option.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     });
 
 
@@ -50,15 +46,20 @@ void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<WebpageDBContext>(options =>
     {
+        string connectionString;
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=TaskerOpdrachtDb;Trusted_Connection=True;");
+            connectionString = builder.Configuration.GetConnectionString("CheckersChampsDb");
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        else
         {
-            options.UseSqlServer("Server=localhost;Database=TaskerOpdrachtDb;User ID=SA;Password=Plusklas01;");
+            connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         }
+
+        options.UseSqlServer(connectionString);
     });
+
     services.AddSignalR();
     services.AddControllers();
 }
@@ -72,6 +73,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();
+
+app.UseMiddleware<UserRoleMiddleware>();
 
 app.MapHub<GameHub>("/gameHub");
 app.MapControllerRoute(

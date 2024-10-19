@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-
+﻿
 namespace Setup.Data
 {
     public class Personalia

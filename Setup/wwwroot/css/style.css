@@ -187,6 +187,34 @@ table {
 .fx-col {
     flex-direction: column;
 }
+/*Profiel pagina*/
+.data-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Aligns items to the top of the container */
+    flex-wrap: wrap; /* Allows wrapping if there are too many items */
+    height: 50vh; /* Upper half of the screen */
+}
 
+    .data-container .item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin: 0 20px;
+        padding: 10px;
+    }
+
+        .data-container .item .title {
+            border-bottom: 1px solid black;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .data-container .item .data {
+            padding-top: 5px;
+        }
 @media only screen and (min-width: 800px) {
 }

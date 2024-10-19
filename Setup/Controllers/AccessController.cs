@@ -2,20 +2,23 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Setup.Models;
-using Microsoft.CodeAnalysis.Scripting;
 using Setup.Data;
-using Newtonsoft.Json;
 
 namespace Setup.Controllers
 {
     public class AccessController : Controller
     {
+        private readonly WebpageDBContext _context;
+        public AccessController(WebpageDBContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Login()
         {
             ClaimsPrincipal userLoggedIn = HttpContext.User;
-            if (userLoggedIn.Identity.IsAuthenticated)
+            if (userLoggedIn.Identity!.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -30,16 +33,23 @@ namespace Setup.Controllers
                 
             //    return RedirectToAction("Index", "Home");
             //}
-            if (loginModel.Email != null && loginModel.Password != null)
+            if (loginModel != null && loginModel.Email != null && loginModel.Password != null)
             {
-                using (var dbContext = new WebpageDBContext())
+                using (_context)
                 {
-                    dbContext.Speler.Find(loginModel.Email);
-                    if (VerifyPassword(loginModel.Password, dbContext.Speler.Find(loginModel.Email)!.Wachtwoord))
+                    if (_context.Speler?.Find(loginModel.Email) == null)
                     {
+                        ViewData["ValidateMessage"] = "User not found!";
+                        return View();
+                    }
+                    if (PasswordManager.VerifyPassword(loginModel.Password, _context.Speler.Find(loginModel.Email)!.Wachtwoord))
+                    {
+                        var user = _context.Speler.Find(loginModel.Email);
+                        var role = user?.Rol;
                         List<Claim> claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier, loginModel.Email)
+                    new Claim(ClaimTypes.NameIdentifier, loginModel.Email),
+                    new Claim(ClaimTypes.Role, role != null ? role : "Gebruiker")
                 };
                         ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims,
                             CookieAuthenticationDefaults.AuthenticationScheme);
@@ -49,6 +59,11 @@ namespace Setup.Controllers
                             AllowRefresh = false,
                             IsPersistent = loginModel.StayLoggedIn
                         };
+                        if (loginModel.StayLoggedIn)
+                        {
+                            // Set a longer expiration time for persistent login
+                            properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30); // e.g., 30 days
+                        }
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                             new ClaimsPrincipal(claimsIdentity), properties);
                         return RedirectToAction("Index", "Home");
@@ -70,14 +85,14 @@ namespace Setup.Controllers
             {
                 if (registerModel.Email != null && registerModel.Password != null)
                 {
-                    string wachtwoord = HashPassword(registerModel.Password);
-                    if (VerifyPassword(registerModel.Password, wachtwoord))
+                    string wachtwoord = PasswordManager.HashPassword(registerModel.Password);
+                    if (PasswordManager.VerifyPassword(registerModel.Password, wachtwoord))
                     {
-                        await using (var dbContext = new WebpageDBContext())
+                        await using (_context)
                         {
                             Gebruiker gebruiker = new Gebruiker(registerModel.Username, registerModel.Email, wachtwoord);
-                            dbContext.Add(gebruiker);
-                            dbContext.SaveChanges();
+                            _context.Add(gebruiker);
+                            _context.SaveChanges();
                         }
                         return RedirectToAction("Login", "Access");
                     }
@@ -86,6 +101,10 @@ namespace Setup.Controllers
             ViewData["ValidateMessage"] = "Could not create account, did you do something wrong?";
             return View();
         }
+        
+    }
+    public class PasswordManager
+    {
         public static string HashPassword(string password)
         {
             // Hash the password using BCrypt

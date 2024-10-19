@@ -274,31 +274,6 @@ namespace Setup.Migrations
                     b.ToTable("DamBord");
                 });
 
-            modelBuilder.Entity("Setup.Data.DamBordVakje", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("Col")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DamBordId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DamStukId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Row")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DamBordVakje");
-                });
-
             modelBuilder.Entity("Setup.Data.DamSpel", b =>
                 {
                     b.Property<int>("Id")
@@ -306,6 +281,14 @@ namespace Setup.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("AanZet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BordStand")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Creator")
                         .IsRequired()
@@ -332,51 +315,6 @@ namespace Setup.Migrations
                     b.ToTable("DamSpel");
                 });
 
-            modelBuilder.Entity("Setup.Data.DamStuk", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("Kleur")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DamStuk");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Kleur = 0,
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Kleur = 1,
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Kleur = 0,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Kleur = 1,
-                            Type = 1
-                        });
-                });
-
             modelBuilder.Entity("Setup.Data.Gebruiker", b =>
                 {
                     b.Property<string>("Email")
@@ -397,15 +335,21 @@ namespace Setup.Migrations
                     b.HasKey("Email");
 
                     b.ToTable("Speler");
+
+                    b.HasData(
+                        new
+                        {
+                            Email = "kevinspijker@kpnmail.nl",
+                            Naam = "Zerphy",
+                            Rol = "Moderator",
+                            Wachtwoord = "$2b$10$fkeQYGRyK09BeRQ6EQzfA.nkFioSRwXXhyENeotAuvXW3j8ttS5q6"
+                        });
                 });
 
             modelBuilder.Entity("Setup.Data.GebruikerStats", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    b.Property<string>("Speler")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AantalGewonnen")
                         .HasColumnType("int");
@@ -416,18 +360,10 @@ namespace Setup.Migrations
                     b.Property<int>("AantalVerloren")
                         .HasColumnType("int");
 
-                    b.Property<int>("LangsteWinstreak")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SpelerEmail")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("WinLossRatio")
                         .HasColumnType("int");
 
-                    b.HasKey("ID");
-
-                    b.HasIndex("SpelerEmail");
+                    b.HasKey("Speler");
 
                     b.ToTable("SpelerStats");
                 });
@@ -481,15 +417,6 @@ namespace Setup.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Setup.Data.GebruikerStats", b =>
-                {
-                    b.HasOne("Setup.Data.Gebruiker", "Speler")
-                        .WithMany()
-                        .HasForeignKey("SpelerEmail");
-
-                    b.Navigation("Speler");
                 });
 #pragma warning restore 612, 618
         }
