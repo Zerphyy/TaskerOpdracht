@@ -1,6 +1,4 @@
-﻿var connection;
-
-document.addEventListener('DOMContentLoaded', function () {
+﻿document.addEventListener('DOMContentLoaded', function () {
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/gameHub")
         .build();

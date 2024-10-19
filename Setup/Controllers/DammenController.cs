@@ -15,6 +15,8 @@ namespace Setup.Controllers
     {
         private readonly IHubContext<GameHub> _hubContext;
         private readonly WebpageDBContext _context;
+        private static Dictionary<string, DateTime> userLastCreationTime = new Dictionary<string, DateTime>();
+
 
         public DammenController(IHubContext<GameHub> hubContext, WebpageDBContext context)
         {
@@ -32,8 +34,6 @@ namespace Setup.Controllers
         }
         public ActionResult Spel(int id)
         {
-            using (_context)
-            {
                 DamSpel? damSpel = _context.DamSpel?.Find(id);
                 if (damSpel != null)
                 {
@@ -41,7 +41,7 @@ namespace Setup.Controllers
                     var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     ViewBag.Spelers = JsonConvert.SerializeObject(spelers);
                     ViewBag.Gebruiker = gebruiker;
-                    ViewBag.BordStand = damSpel.BordStand;  // Pass the BordStand value to the view
+                    ViewBag.BordStand = damSpel.BordStand;
                     ViewBag.Id = damSpel.Id;
                     ViewBag.AanZet = damSpel.AanZet;
                     return View(damSpel);
@@ -50,14 +50,6 @@ namespace Setup.Controllers
                 {
                     return RedirectToAction("Index");
                 }
-            }
-        }
-
-
-        // GET: DammenController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
         }
 
         // GET: DammenController/Create
@@ -70,17 +62,23 @@ namespace Setup.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DamSpel model)
         {
-            using (_context)
+            string userId = model.Creator == null ? User.FindFirstValue(ClaimTypes.NameIdentifier) : model.Creator;
+            if (userLastCreationTime.ContainsKey(userId))
             {
-                DamBord bord = new DamBord(0);
-                DatabaseSaving(bord, _context, "Add");
-                //correcte opzet
-                //DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020");
-                //test opzet
-                DamSpel spel = new DamSpel(0, model.SpelNaam, null, User.FindFirstValue(ClaimTypes.NameIdentifier), null, bord.Id, false, "0101010110101010010101010000000002020202000000000202020200000000", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                DatabaseSaving(spel, _context, "Add");
+                DateTime lastCreationTime = userLastCreationTime[userId];
+                if ((DateTime.UtcNow - lastCreationTime).TotalMilliseconds < 300)
+                {
+                    return Json(new { success = false, message = "You can only create one game per second." });
+                }
+            }
+            userLastCreationTime[userId] = DateTime.UtcNow;
+            DamBord bord = new DamBord(0);
+            DatabaseSaving(bord, _context, "Add");
+            DamSpel spel = new DamSpel(0, model.SpelNaam, null, userId, null, bord.Id, false, "0101010110101010010101010000000000000000202020200202020220202020", userId);
+            DatabaseSaving(spel, _context, "Add");
+            if (model.Creator == null)
+            {
                 await _hubContext.Clients.All.SendAsync("GameListChanged");
-
             }
             return RedirectToAction("Index");
         }
@@ -109,15 +107,12 @@ namespace Setup.Controllers
         [HttpPost]
         public IActionResult Delete(DamSpel? spel)
         {
-            using (_context)
-            {
                 DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
                 if (damSpel == null)
                 {
                     return Json(new { success = false, message = "Spel kon niet worden gevonden." });
                 }
                 DatabaseSaving(damSpel, _context, "Remove");
-            }
             return Json(new { success = true });
         }
         private void DatabaseSaving(object obj, WebpageDBContext context, string type)
@@ -159,8 +154,6 @@ namespace Setup.Controllers
                     }
                     return Json(new { success = false, message = "Deze game zit al vol!" });
                 }
-                using (_context)
-                {
                     DamSpel? damSpel = _context.DamSpel?.Find(spel.Id);
                     if (damSpel != null)
                     {
@@ -172,7 +165,6 @@ namespace Setup.Controllers
                     {
                         return Json(new { success = false, message = "Dit spel kon niet gevonden worden." });
                     }
-                }
             }
             else
             {
@@ -196,8 +188,6 @@ namespace Setup.Controllers
         [HttpPost]
         public IActionResult UpdateBoardData(string gameState, string gameId, string beurt)
         {
-            using (_context)
-            {
                 DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
                 if (spel == null)
                 {
@@ -210,7 +200,6 @@ namespace Setup.Controllers
                     DatabaseSaving(spel, _context, "Update");
                     return Json(new { success = true });
                 }
-            }
         }
         [HttpPost]
         public IActionResult ProcessWin(string gameId, string winner, string[] players, string caller)
@@ -220,8 +209,6 @@ namespace Setup.Controllers
                 return Json(new { success = false, message = "Wrong player sent the call!" });
             } else
             {
-                using (_context)
-                {
                     DamSpel? spel = _context.DamSpel?.Find(Int32.Parse(gameId));
                     if (spel == null)
                     {
@@ -278,7 +265,6 @@ namespace Setup.Controllers
                     }
 
                     return Json(new { success = true });
-                }
             }
             
         }
