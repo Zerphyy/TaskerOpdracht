@@ -299,8 +299,8 @@ var CheckersModule = (function () {
                 jumpRow >= 0 && jumpRow < 8 &&
                 jumpCol >= 0 && jumpCol < 8 &&
                 gameStateArray[newRow][newCol] !== 0 &&
-                ((gebruiker === spelers[0] && gameStateArray[newRow][newCol] === 2) ||
-                    (gebruiker === spelers[1] && gameStateArray[newRow][newCol] === 1)) &&
+                ((gebruiker === spelers[0] && (gameStateArray[newRow][newCol] === 2 || gameStateArray[newRow][newCol] === 4)) ||
+                    (gebruiker === spelers[1] && (gameStateArray[newRow][newCol] === 1 || gameStateArray[newRow][newCol] === 3))) &&
                 gameStateArray[jumpRow][jumpCol] === 0
             ) {
                 var squareDiv = CheckersModule.getShadowRoot().querySelector('#square' + (jumpRow * 8 + jumpCol));
@@ -526,7 +526,7 @@ function checkForAdditionalPromotedCaptures(i, speler, spelers, capturedPrevious
                 continue;
             } else if (capturableEnemy === null && speler === spelers[0] && (squareState === 2 || squareState === 4) || speler === spelers[1] && (squareState === 1 || squareState === 3)) {
                 capturableEnemy = { row: currentRow, col: currentCol };
-            } else if (capturableEnemy !== null && CheckersModule.getGameStateArray()[currentRow + direction.rowDir][currentCol + direction.colDir] === 0) {
+            } else if (capturableEnemy !== null && CheckersModule.gameStateArray[Math.floor(currentRow + direction.rowDir)][Math.floor(currentCol + direction.colDir)] === 0) {
                 captureMoves.push({
                     captureRow: capturableEnemy.row,
                     captureCol: capturableEnemy.col,
