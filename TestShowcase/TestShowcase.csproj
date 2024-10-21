@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Setup\Setup.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CypressFrontEndTests\" />
+  </ItemGroup>
+
 </Project>

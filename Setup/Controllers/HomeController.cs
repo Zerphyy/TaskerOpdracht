@@ -144,7 +144,7 @@ namespace Setup.Controllers
         {
             var contactOpnemen = bellen != default(DateTime) ? $"je kan me vanaf {bellen} bereiken via {nummer}" : "Gelieve mij niet te bellen";
             //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-            var apiKey = "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";
+            var apiKey = "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";
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress(email, naam);
             var subject = onderwerp;
