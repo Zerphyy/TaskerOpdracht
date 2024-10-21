@@ -26,6 +26,7 @@ namespace Setup.Controllers
             if (CheckUserRole(userEmail))
             {
                 HttpContext.Session.SetString("UserEmail", userEmail); // Save it in session
+                ViewBag.User = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 return View();
             }
             return Redirect(Request.Headers["Referer"].ToString());
@@ -84,11 +85,20 @@ namespace Setup.Controllers
             }
             return Json(null);
         }
+        public IActionResult GetUserRole(string user)
+        {
+                var User = _context.Speler?.FirstOrDefault(s => s.Email == user);
+                if (User != null)
+                {
+                    return Json(User.Rol);
+                }
+            return Json(null);
+        }
         private bool CheckUserRole(string userId)
         {
             using (_context)
             {
-                if (_context.Speler?.Find(userId).Rol == "Moderator")
+                if (_context.Speler?.Find(userId).Rol == "Moderator" || _context.Speler?.Find(userId).Rol == "Admin")
                 {
                     return true;
                 }

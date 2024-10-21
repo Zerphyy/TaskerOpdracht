@@ -74,7 +74,7 @@
 
                             var userRole = Context.Items["UserRole"] as string;
                             var userEmail = Context.Items["UserEmail"] as string;
-                            if (userRole == "Moderator")
+                            if (userRole == "Moderator" || userRole == "Admin")
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Management" asp-action="Index">Accounts beheren</a>

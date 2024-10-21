@@ -1,4 +1,9 @@
-﻿function CreateTablePartials(data) {
+﻿let currentUserRole = "";
+function setCurrentUserRole(user) {
+    GetUserRole(user);
+    GetUserList();
+}
+function CreateTablePartials(data) {
     document.querySelector('#user__lijst').innerHTML = '';
     for (var user of data) {
         var genericRij = CreateTablePartialData(user);
@@ -35,28 +40,50 @@ function CreateTablePartialData(user) {
     rij.appendChild(winLossRatio);
     rij.appendChild(rol);
 
-    if (user.rol != 'Moderator') {
-        var promoveren = document.createElement('button');
-        promoveren.innerHTML = 'Promoveren';
-        promoveren.onclick = function () {
-            console.log(user.email);
-            PromoteUser(user.email);
-        };
-        promoverenCell.appendChild(promoveren);
-        rij.appendChild(promoverenCell);
-
-        var verwijderen = document.createElement('button');
-        verwijderen.innerHTML = 'Verwijderen';
-        verwijderen.onclick = function () {
-            RemoveUser(user.email);
-        };
-        verwijderenCell.appendChild(verwijderen);
-        rij.appendChild(verwijderenCell);
+    if (currentUserRole == 'Moderator') {
+        if (user.rol != 'Moderator') {
+            var promoveren = document.createElement('button');
+            promoveren.innerHTML = 'Promoveren';
+            promoveren.onclick = function () {
+                console.log(user.email);
+                PromoteUser(user.email);
+            };
+            promoverenCell.appendChild(promoveren);
+            rij.appendChild(promoverenCell);
+            var verwijderen = document.createElement('button');
+            verwijderen.innerHTML = 'Verwijderen';
+            verwijderen.onclick = function () {
+                RemoveUser(user.email);
+            };
+            verwijderenCell.appendChild(verwijderen);
+            rij.appendChild(verwijderenCell);
+        }
+    } else if (currentUserRole == 'Admin') {
+        if (user.rol != 'Admin') {
+            if (user.rol != 'Moderator') {
+                var promoveren = document.createElement('button');
+                promoveren.innerHTML = 'Promoveren';
+                promoveren.onclick = function () {
+                    console.log(user.email);
+                    PromoteUser(user.email);
+                };
+                promoverenCell.appendChild(promoveren);
+                rij.appendChild(promoverenCell);
+            } else {
+                rij.appendChild(promoverenCell);
+            }
+            var verwijderen = document.createElement('button');
+            verwijderen.innerHTML = 'Verwijderen';
+            verwijderen.onclick = function () {
+                RemoveUser(user.email);
+            };
+            verwijderenCell.appendChild(verwijderen);
+            rij.appendChild(verwijderenCell);
+        }
     } else {
         rij.appendChild(promoverenCell);
         rij.appendChild(verwijderenCell);
     }
-
     return rij;
 }
 
@@ -80,6 +107,22 @@ function GetUserStats(user) {
         dataType: 'json',
         success: function (result) {
             return result;
+        },
+        error: function (error) {
+            console.error(error);
+        }
+    })
+}
+function GetUserRole(user) {
+    $.ajax({
+        url: 'Management/GetUserRole',
+        method: 'GET',
+        dataType: 'json',
+        data: {
+            user: user
+        },
+        success: function (result) {
+            currentUserRole = result;
         },
         error: function (error) {
             console.error(error);
@@ -122,7 +165,3 @@ function RemoveUser(user) {
         }
     });
 }
-
-window.onload = function () {
-    GetUserList();
-};

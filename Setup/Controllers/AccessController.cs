@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Setup.Models;
 using Setup.Data;
+using PostmarkDotNet.Model;
+using PostmarkDotNet;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Setup.Controllers
 {
@@ -30,7 +36,7 @@ namespace Setup.Controllers
             //if (loginModel.Email == "kevinspijker@kpnmail.nl" &&
             //    loginModel.Password == "welkom01" && loginModel.Username != null)
             //{
-                
+
             //    return RedirectToAction("Index", "Home");
             //}
             if (loginModel != null && loginModel.Email != null && loginModel.Password != null)
@@ -44,34 +50,72 @@ namespace Setup.Controllers
                     }
                     if (PasswordManager.VerifyPassword(loginModel.Password, _context.Speler.Find(loginModel.Email)!.Wachtwoord))
                     {
-                        var user = _context.Speler.Find(loginModel.Email);
-                        var role = user?.Rol;
-                        List<Claim> claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, loginModel.Email),
-                    new Claim(ClaimTypes.Role, role != null ? role : "Gebruiker")
-                };
-                        ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims,
-                            CookieAuthenticationDefaults.AuthenticationScheme);
-
-                        AuthenticationProperties properties = new AuthenticationProperties()
-                        {
-                            AllowRefresh = false,
-                            IsPersistent = loginModel.StayLoggedIn
-                        };
-                        if (loginModel.StayLoggedIn)
-                        {
-                            // Set a longer expiration time for persistent login
-                            properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30); // e.g., 30 days
-                        }
-                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                            new ClaimsPrincipal(claimsIdentity), properties);
-                        return RedirectToAction("Index", "Home");
+                        TempData["UserMail"] = loginModel.Email;
+                        TempData["LoginModel"] = JsonConvert.SerializeObject(loginModel);
+                        return RedirectToAction("Validate");
                     }
                 }
             }
             ViewData["ValidateMessage"] = "User not found!";
             return View();
+        }
+        public async Task<IActionResult> Validate()
+        {
+            var userMail = TempData["UserMail"] as string;
+            if (userMail != null)
+            {
+                ViewBag.UserMail = userMail;
+                Random random = new Random();
+                var nummer = random.Next(0, 999999);
+                await SendMail(userMail, nummer);
+                TempData["2FANumber"] = nummer.ToString();
+                var loginModelJson = TempData["LoginModel"] as string;
+                LoginModel loginModel = JsonConvert.DeserializeObject<LoginModel>(loginModelJson);
+                TempData["LoginModel"] = JsonConvert.SerializeObject(loginModel);
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> Validate(ValidateLoginModel vlm)
+        {
+            var loginModelJson = TempData["LoginModel"] as string;
+            var loginModel = JsonConvert.DeserializeObject<LoginModel>(loginModelJson);
+            var twoFANumber = TempData["2FANumber"] as string;
+            if (vlm != null && twoFANumber != null)
+            {
+                if (twoFANumber == vlm.TwoFa.ToString())
+                {
+                    var user = _context.Speler?.Find(loginModel.Email);
+                    var role = user?.Rol;
+                    List<Claim> claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, loginModel.Email),
+                    new Claim(ClaimTypes.Role, role != null ? role : "Gebruiker")
+                };
+                    ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims,
+                        CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    AuthenticationProperties properties = new AuthenticationProperties()
+                    {
+                        AllowRefresh = false,
+                        IsPersistent = loginModel.StayLoggedIn
+                    };
+                    if (loginModel.StayLoggedIn)
+                    {
+                        // Set a longer expiration time for persistent login
+                        properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30); // e.g., 30 days
+                    }
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity), properties);
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+            return RedirectToAction("Login");
         }
         public IActionResult Register()
         {
@@ -101,7 +145,34 @@ namespace Setup.Controllers
             ViewData["ValidateMessage"] = "Could not create account, did you do something wrong?";
             return View();
         }
-        
+        static async Task SendMail(string email, int nummer)
+        {
+            var headerDictionary = new Dictionary<string, string>()
+{
+    { "X-CUSTOM-HEADER", "Header content" }
+};
+
+            // Create a HeaderCollection using the dictionary
+            var headers = new HeaderCollection(headerDictionary);
+            var message = new PostmarkMessage()
+            {
+                To = email,
+                From = "s1146282@student.windesheim.nl",
+                TrackOpens = true,
+                Subject = "2FA check",
+                TextBody = "body",
+                HtmlBody = "Geachte " + email + "<br> Hierbij uw 2FA code, deze dient u te gebruiken op de validate pagina van de showcase: " + nummer,
+                MessageStream = "broadcast",
+                Tag = "Showcase mail",
+                Headers = headers
+            };
+            var client = new PostmarkClient("ae222fd1-d50a-42c0-8a53-3dd46b2a2dda");
+            var sendResult = await client.SendMessageAsync(message);
+
+            if (sendResult.Status == PostmarkStatus.Success) { }
+            else { /* Resolve issue.*/ }
+        }
+
     }
     public class PasswordManager
     {

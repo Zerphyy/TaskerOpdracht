@@ -13,3 +13,8 @@
     </tbody>
 </table>
 <script src="~/js/Moderation.js" asp-append-version="true"></script>
+<script>
+    window.onload = function () {
+        setCurrentUserRole('@ViewBag.User');
+    };
+</script>

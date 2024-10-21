@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SendGrid.Helpers.Mail;
 using SendGrid;
+using PostmarkDotNet;
 using Setup.Data;
 using Setup.Models;
 using System.Diagnostics;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using PostmarkDotNet.Model;
+using System.Security.Cryptography;
 
 namespace Setup.Controllers
 {
@@ -92,7 +95,8 @@ namespace Setup.Controllers
             {
                 //wanneer 1 van de 2 niet correct is, view terug sturen en fouten aanpassen
                 return View(model);
-            } else
+            }
+            else
             {
                 //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
@@ -104,7 +108,7 @@ namespace Setup.Controllers
                     //db opslaanS
                     _context.SaveChanges();
                 }
-                    return RedirectToAction("Index");
+                return RedirectToAction("Index");
             }
 
         }
@@ -144,15 +148,40 @@ namespace Setup.Controllers
         {
             var contactOpnemen = bellen != default(DateTime) ? $"je kan me vanaf {bellen} bereiken via {nummer}" : "Gelieve mij niet te bellen";
             //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-            var apiKey = "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";
-            var client = new SendGridClient(apiKey);
-            var from = new EmailAddress(email, naam);
-            var subject = onderwerp;
-            var to = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
-            var plainTextContent = $"{bericht}, {contactOpnemen}, ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
-            var htmlContent = $"<strong>{onderwerp}</strong> <br> {bericht} <br><br> {contactOpnemen} <br><br> ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-            var response = await client.SendEmailAsync(msg);
+            //var apiKey = "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";
+            //var client = new SendGridClient(apiKey);
+            //var from = new EmailAddress(email, naam);
+            //var subject = onderwerp;
+            //var to = new EmailAddress("kevinspijker@kpnmail.nl", "Kevin Spijker");
+            //var plainTextContent = $"{bericht}, {contactOpnemen}, ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
+            //var htmlContent = $"<strong>{onderwerp}</strong> <br> {bericht} <br><br> {contactOpnemen} <br><br> ik wil graag {(nieuwsbrief == true ? "wel een" : "geen")} nieuwsbrief ontvangen";
+            //var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            //var response = await client.SendEmailAsync(msg);
+            // Send an email asynchronously:
+            var headerDictionary = new Dictionary<string, string>()
+{
+    { "X-CUSTOM-HEADER", "Header content" }
+};
+
+            // Create a HeaderCollection using the dictionary
+            var headers = new HeaderCollection(headerDictionary);
+            var message = new PostmarkMessage()
+            {
+                To = email,
+                From = "s1146282@student.windesheim.nl",
+                TrackOpens = true,
+                Subject = onderwerp,
+                TextBody = "body",
+                HtmlBody = "Geachte " + naam + "<br> We hebben je contactformulier met bericht: <br>" + bericht + " <br> in goede orde ontvangen, ook heb je het volgende aangegeven<br>" + contactOpnemen + "<br> en als laatst heb je aangegeven je nieuwsbrief status op " + nieuwsbrief + " te willen zetten",
+                MessageStream = "broadcast",
+                Tag = "Showcase mail",
+                Headers = headers
+            };
+            var client = new PostmarkClient("ae222fd1-d50a-42c0-8a53-3dd46b2a2dda");
+            var sendResult = await client.SendMessageAsync(message);
+
+            if (sendResult.Status == PostmarkStatus.Success) { }
+            else { /* Resolve issue.*/ }
         }
     }
 }
