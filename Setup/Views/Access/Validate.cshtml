@@ -8,6 +8,9 @@
     <title>Login</title>
 </head>
 <body>
+    <div>
+        A 2-Factor Authentication code has been sent to your Email, please also check your spam folder.
+    </div>
     <form asp-controller="Access" asp-action="Validate" method="post">
         <h1>Login</h1>
         <input type="text" placeholder="2FA code" asp-for="TwoFa"/>

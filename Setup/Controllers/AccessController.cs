@@ -10,12 +10,14 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http;
 using System.IdentityModel.Tokens.Jwt;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Setup.Controllers
 {
     public class AccessController : Controller
     {
         private readonly WebpageDBContext _context;
+        private static Dictionary<string, DateTime> userLastInteractionTime = new Dictionary<string, DateTime>();
         public AccessController(WebpageDBContext context)
         {
             _context = context;
@@ -41,6 +43,16 @@ namespace Setup.Controllers
             //}
             if (loginModel != null && loginModel.Email != null && loginModel.Password != null)
             {
+                if (userLastInteractionTime.ContainsKey(loginModel.Email))
+                {
+                    DateTime lastCreationTime = userLastInteractionTime[loginModel.Email];
+                    if ((DateTime.UtcNow - lastCreationTime).TotalMilliseconds < 5000)
+                    {
+                        ViewData["ValidateMessage"] = "You're trying to login too fast!";
+                        return View();
+                    }
+                }
+                userLastInteractionTime[loginModel.Email] = DateTime.UtcNow;
                 using (_context)
                 {
                     if (_context.Speler?.Find(loginModel.Email) == null)

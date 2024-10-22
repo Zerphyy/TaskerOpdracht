@@ -176,7 +176,7 @@ namespace Setup.Controllers
         {
             var damSpellen = _context.DamSpel?.OrderBy(e => e.Id).ToList();
             var spelers = _context.Speler?.ToList();
-            var gebruiker = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var gebruiker = User != null ? User.FindFirstValue(ClaimTypes.NameIdentifier) : "";
             var lijstData = new Dictionary<string, object?>
         {
             { "Spellen", damSpellen },
