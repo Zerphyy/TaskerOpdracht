@@ -154,9 +154,9 @@ namespace Setup.Controllers
         static async Task SendMail(string email, int nummer)
         {
             var headerDictionary = new Dictionary<string, string>()
-{
-    { "X-CUSTOM-HEADER", "Header content" }
-};
+                {
+                    { "X-CUSTOM-HEADER", "Header content" }
+                };
 
             var headers = new HeaderCollection(headerDictionary);
             var message = new PostmarkMessage()
