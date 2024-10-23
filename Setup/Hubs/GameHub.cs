@@ -24,5 +24,13 @@ namespace Setup.Hubs
                 await Clients.User(userId).SendAsync("Removed");
             }
         }
+        public async Task PromoteUser(string userId)
+        {
+            var connection = Context.UserIdentifier;
+            if (connection == userId)
+            {
+                await Clients.User(userId).SendAsync("Promoted");
+            }
+        }
     }
 }

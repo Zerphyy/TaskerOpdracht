@@ -33,13 +33,14 @@ namespace Setup.Controllers
 
 
         [HttpPost]
-        public IActionResult PromoteUser(string userId)
+        public async Task<IActionResult> PromoteUser(string userId)
         {
             var user = _context.Speler?.Find(userId);
             if (user != null)
             {
                 user.Rol = "Moderator";
                 _context.SaveChanges();
+                await _hubContext.Clients.User(userId).SendAsync("Promoted");
                 return Json(new { success = true });
             }
             return Json(new { success = false, message = "User not found" });

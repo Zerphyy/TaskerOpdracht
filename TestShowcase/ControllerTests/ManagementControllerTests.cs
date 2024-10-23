@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -55,8 +56,8 @@ namespace TestShowcase.ControllerTests
         private void SeedDatabase(WebpageDBContext context)
         {
             context.Speler?.Add(new Gebruiker { Naam = "Zerphy", Email = "kevinspijker@kpnmail.nl", Wachtwoord = BCrypt.Net.BCrypt.HashPassword("password", BCrypt.Net.BCrypt.GenerateSalt()), Rol = "Moderator" });
-            context.Speler?.Add(new Gebruiker{Naam = "User1", Email = "user1@example.com",Wachtwoord = BCrypt.Net.BCrypt.HashPassword("password", BCrypt.Net.BCrypt.GenerateSalt()),Rol = "Gebruiker"});
-            context.Speler?.Add(new Gebruiker{Naam = "Admin",Email = "admin@example.com",Wachtwoord = BCrypt.Net.BCrypt.HashPassword("password", BCrypt.Net.BCrypt.GenerateSalt()),Rol = "Admin"});
+            context.Speler?.Add(new Gebruiker { Naam = "User1", Email = "user1@example.com", Wachtwoord = BCrypt.Net.BCrypt.HashPassword("password", BCrypt.Net.BCrypt.GenerateSalt()), Rol = "Gebruiker" });
+            context.Speler?.Add(new Gebruiker { Naam = "Admin", Email = "admin@example.com", Wachtwoord = BCrypt.Net.BCrypt.HashPassword("password", BCrypt.Net.BCrypt.GenerateSalt()), Rol = "Admin" });
             context.SaveChanges();
         }
         private void SetUpUserConnections()
@@ -92,13 +93,77 @@ namespace TestShowcase.ControllerTests
             var user = await _dbContext.Speler.FindAsync(userIdToRemove);
             Assert.IsNull(user);
         }
-
         [Test]
-        public void RetrieveIndexView()
+        public async Task PromoteUserOnExistingUserWorks()
+        {
+            var userIdToPromote = "user1@example.com";
+            var result = await _controller.PromoteUser(userIdToPromote) as JsonResult;
+            Assert.IsNotNull(result);
+            Assert.IsTrue((bool)result.Value?.GetType().GetProperty("success")?.GetValue(result.Value, null));
+            Assert.IsTrue(_dbContext.Speler?.FirstOrDefault(s => s.Email == userIdToPromote).Rol == "Moderator");
+            _mockClients.Verify(clients => clients.User(userIdToPromote), Times.Once);
+            _mockHubContext.Verify(hub => hub.Clients.User(userIdToPromote), Times.Once);
+        }
+        [Test]
+        public async Task PromoteUserOnNonExistingUserFails()
+        {
+            var userIdToPromote = "user10000000@example.com";
+            var result = await _controller.PromoteUser(userIdToPromote) as JsonResult;
+            Assert.IsNotNull(result);
+            Assert.IsTrue(!(bool)result.Value?.GetType().GetProperty("success")?.GetValue(result.Value, null));
+            Assert.IsTrue(_dbContext.Speler?.FirstOrDefault(s => s.Email == userIdToPromote) == null);
+        }
+        [Test]
+        public void RetrieveIndexViewAsModeratorOrAdmin()
         {
             var result = _controller.Index() as ViewResult;
 
             Assert.AreEqual(null, result?.ViewName);
+        }
+        [Test]
+        public void RetrieveIndexViewAsUser()
+        {
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, "user1@example.com"),
+        new Claim(ClaimTypes.Name, "User1"),
+        new Claim(ClaimTypes.Role, "Gebruiker")
+            }, CookieAuthenticationDefaults.AuthenticationScheme));
+
+            var context = new DefaultHttpContext
+            {
+                User = user,
+                Session = new Mock<ISession>().Object
+            };
+
+            context.Request.Headers["Referer"] = "http://example.com/previous-page";
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = context
+            };
+
+            Assert.IsTrue(_dbContext.Speler?.FirstOrDefault(s => s.Email == "user1@example.com").Rol == "Gebruiker");
+
+            var result = _controller.Index() as RedirectResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("http://example.com/previous-page", result.Url);
+        }
+        [Test]
+        public void GetUserLijstReturnsList()
+        {
+            var result = _controller.GetUserLijst() as JsonResult;
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+
+            Assert.IsTrue(result.Value is IEnumerable);
+
+            var list = result.Value as IEnumerable<object>;
+            Assert.IsNotNull(list);
+
+            Assert.IsTrue(list.All(item => item is Gebruiker));
         }
 
         [TearDown]

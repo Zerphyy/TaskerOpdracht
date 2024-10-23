@@ -22,6 +22,9 @@
         connection.on("Removed", function () {
             location.href = "/Home/LogOut";
         });
+        connection.on("Promoted", function () {
+            location.reload();
+        });
         connection.onclose(() => {
             console.log("Disconnected");
             setTimeout(() => connection.start(), 5000);
