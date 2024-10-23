@@ -23,7 +23,6 @@ namespace Setup.Controllers
             _hubContext = hubContext;
             _context = context;
         }
-        // GET: DammenController
         public ActionResult Index()
         {
             var damSpellen = _context.DamSpel?.ToList();
@@ -52,13 +51,11 @@ namespace Setup.Controllers
                 }
         }
 
-        // GET: DammenController/Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: DammenController/Create
         [HttpPost]
         public async Task<IActionResult> Create(DamSpel model)
         {
@@ -83,13 +80,11 @@ namespace Setup.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: DammenController/Edit/5
         public ActionResult Edit(int id)
         {
             return View();
         }
 
-        // POST: DammenController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, IFormCollection collection)
@@ -238,7 +233,6 @@ namespace Setup.Controllers
                         DatabaseSaving(spelerStatsLoser, _context, "Update");
                     }
 
-                    //create stats fields if either one or both playerstats dont exist
                     if (spelerStatsWinner == null && spelerWinner != null && spelerWinner.Email == winner)
                     {
                         GebruikerStats winnaar = new GebruikerStats
@@ -271,11 +265,8 @@ namespace Setup.Controllers
     }
     public class GameData
     {
-        //Player object
         public string? Speler1 { get; set; }
-        //Player email identifier
         public string? Speler2 { get; set; }
-        //Game identifier
         public DamSpel? DamSpel { get; set; }
     }
 }

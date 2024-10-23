@@ -12,8 +12,6 @@ namespace Setup.Data
         public string LinkedIn { get; set; }
         public int BIG { get; set; }
         public List<string> Eigenschappen { get; set; }
-
-        //TODO: voeg sterren toe aan vaardigheden om aan te geven hoe goed je het beseerst
         public Dictionary<string, string> Vaardigheden { get; set; }
         public Profiel? Profiel { get; set; }
     }

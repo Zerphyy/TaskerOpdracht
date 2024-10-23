@@ -6,6 +6,7 @@ using Setup.Data;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace TestShowcase.ControllerTests
 {
@@ -30,6 +31,16 @@ namespace TestShowcase.ControllerTests
             SeedDatabase(_dbContext);
 
             _controller = new DammenController(_mockHubContext.Object, _dbContext);
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, "kevinspijker@kpnmail.nl"),
+        new Claim(ClaimTypes.Name, "Kevin Spijker"),
+        new Claim(ClaimTypes.Role, "Gebruiker")
+            }, CookieAuthenticationDefaults.AuthenticationScheme));
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
         }
 
         private void SeedDatabase(WebpageDBContext context)
@@ -42,16 +53,16 @@ namespace TestShowcase.ControllerTests
         [Test]
         public void RetrieveIndexView()
         {
-            var result = _controller.Index();
+            var result = _controller.Index() as ViewResult;
 
-            Assert.IsNotNull(result);
+            Assert.AreEqual(null, result?.ViewName);
         }
         [Test]
         public void RetrieveCreateView()
         {
-            var result = _controller.Create();
+            var result = _controller.Create() as ViewResult;
 
-            Assert.IsNotNull(result);
+            Assert.AreEqual(null, result?.ViewName);
         }
         [Test]
         public void CreateGameTest()
@@ -99,11 +110,14 @@ namespace TestShowcase.ControllerTests
 
 
         [Test]
-        public void RetrieveGameView()
+        public async Task RetrieveGameView()
         {
-            var result = _controller.Spel(1);
+            DamSpel newGame = new DamSpel(0, "Spel1", null, "kevinspijker@kpnmail.nl", null, 0, false, null, "kevinspijker@kpnmail.nl");
+            await _controller.Create(newGame);
+            var result = _controller.Spel(_dbContext.DamSpel.FirstOrDefault(s => s.SpelNaam == "Spel1").Id) as ViewResult;
 
             Assert.IsNotNull(result);
+            Assert.AreNotEqual("NotANumber", result?.ViewData["Id"]);
         }
         [Test]
         public async Task DeleteGameTest()
@@ -163,7 +177,7 @@ namespace TestShowcase.ControllerTests
             DamSpel addedGame = _dbContext.DamSpel?.FirstOrDefault(d => d.SpelNaam == "Spel1");
             Assert.IsNotNull(addedGame, "The game was not added to the database.");
 
-            var result = _controller.UpdateBoardData("1234567890", addedGame.Id.ToString(), addedGame.AanZet == addedGame.Creator ? addedGame.Deelnemer : addedGame.Creator);  // Assuming your Delete method takes an ID
+            var result = _controller.UpdateBoardData("1234567890", addedGame.Id.ToString(), addedGame.AanZet == addedGame.Creator ? addedGame.Deelnemer : addedGame.Creator);
             DamSpel updatedGame = _dbContext.DamSpel?.FirstOrDefault(d => d.SpelNaam == "Spel1");
             Assert.AreNotEqual(updatedGame.BordStand, "0101010110101010010101010000000000000000202020200202020220202020");
         }

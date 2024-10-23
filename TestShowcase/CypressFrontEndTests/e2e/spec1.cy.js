@@ -1,4 +1,4 @@
-let needsLogin = false; // Flag to track login status
+let needsLogin = false;
 
 describe('All Showcase tests for the frontend using Cypress', () => {
     it('Visits the Showcase', () => {
@@ -33,11 +33,9 @@ describe('Logged-in User Tests', () => {
         password: 'Plusklas01!',
     };
 
-    // Use this variable to track which user you want to log in as
     let currentUser;
 
     beforeEach(() => {
-        // Log in to the current user based on which test is being run
         if (currentUser === testUser.name) {
             cy.session(testUser.name, () => {
                 cy.login(testUser.email, testUser.password, true);

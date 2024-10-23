@@ -17,12 +17,9 @@ namespace Setup.Data
         {
             Console.WriteLine(options);
         }
-        //seeden van DB tabel (zouu verouderd kunnen zijn)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //geef base db creation values voor alle standard tables
             base.OnModelCreating(modelBuilder);
-            //seed tables die niet aangepast hoeven te worden
             modelBuilder.Entity<Gebruiker>().HasData(new Gebruiker {Naam = "Zerphy", Email = "kevinspijker@kpnmail.nl", Wachtwoord = PasswordManager.HashPassword("Plusklas01!"), Rol = "Admin" });
         }
 

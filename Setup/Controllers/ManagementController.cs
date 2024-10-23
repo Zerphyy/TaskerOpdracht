@@ -19,27 +19,26 @@ namespace Setup.Controllers
             _hubContext = hubContext;
             _context = context;
         }
-        // GET: ManagementController
         public ActionResult Index()
         {
             var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (CheckUserRole(userEmail))
             {
-                HttpContext.Session.SetString("UserEmail", userEmail); // Save it in session
+                HttpContext.Session.SetString("UserEmail", userEmail);
                 ViewBag.User = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 return View();
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-        
+
         [HttpPost]
         public IActionResult PromoteUser(string userId)
         {
             var user = _context.Speler?.Find(userId);
             if (user != null)
             {
-                user.Rol = "Moderator"; // Update the role to Moderator
+                user.Rol = "Moderator";
                 _context.SaveChanges();
                 return Json(new { success = true });
             }
@@ -63,45 +62,36 @@ namespace Setup.Controllers
         public IActionResult GetUserLijst()
         {
             List<Gebruiker> gebruikerLijst = null;
-            using (_context)
+            var gebruikers = _context.Speler?.ToList();
+            if (gebruikers?.Count() > 0)
             {
-                var gebruikers = _context.Speler?.ToList();
-                if (gebruikers?.Count() > 0)
-                {
-                    gebruikerLijst = gebruikers;
-                }
+                gebruikerLijst = gebruikers;
             }
             return Json(gebruikerLijst);
         }
         public IActionResult GetUserStats(Speler user)
         {
-            using (_context)
+            var userStats = _context.SpelerStats?.FirstOrDefault(s => s.Speler == user.Email);
+            if (userStats != null)
             {
-                var userStats = _context.SpelerStats?.FirstOrDefault(s => s.Speler == user.Email);
-                if (userStats != null)
-                {
-                    return Json(userStats);
-                }
+                return Json(userStats);
             }
             return Json(null);
         }
         public IActionResult GetUserRole(string user)
         {
-                var User = _context.Speler?.FirstOrDefault(s => s.Email == user);
-                if (User != null)
-                {
-                    return Json(User.Rol);
-                }
+            var User = _context.Speler?.FirstOrDefault(s => s.Email == user);
+            if (User != null)
+            {
+                return Json(User.Rol);
+            }
             return Json(null);
         }
         private bool CheckUserRole(string userId)
         {
-            using (_context)
+            if (_context.Speler?.Find(userId).Rol == "Moderator" || _context.Speler?.Find(userId).Rol == "Admin")
             {
-                if (_context.Speler?.Find(userId).Rol == "Moderator" || _context.Speler?.Find(userId).Rol == "Admin")
-                {
-                    return true;
-                }
+                return true;
             }
             return false;
         }

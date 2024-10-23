@@ -44,7 +44,6 @@ namespace Setup.Controllers
         }
         public IActionResult Contact()
         {
-            //TODO: voeg recaptcha verificatie toe, maak form submitten mogelijk, etc.
             UpdatePageViewCookie();
             return View();
         }
@@ -90,22 +89,16 @@ namespace Setup.Controllers
             var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
             var responseBody = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<RecaptchaResponse>(responseBody);
-            //result = recaptcha verifyen, modelState = eisen gesteld aan values in form
             if (!result.Success || !ModelState.IsValid)
             {
-                //wanneer 1 van de 2 niet correct is, view terug sturen en fouten aanpassen
                 return View(model);
             }
             else
             {
-                //sendmail shit
                 await SendMail(model.Email, model.Naam, model.Onderwerp, model.Phone, model.Bericht, model.Nieuwsbrief, model.Bellen);
-                //db connectie opzetten
                 using (_context)
                 {
-                    //data toevoegen aan ContactData tabel
                     _context.ContactData.Add(model);
-                    //db opslaanS
                     _context.SaveChanges();
                 }
                 return RedirectToAction("Index");
@@ -147,6 +140,7 @@ namespace Setup.Controllers
         static async Task SendMail(string email, string naam, string onderwerp, string nummer, string bericht, bool nieuwsbrief, DateTime? bellen)
         {
             var contactOpnemen = bellen != default(DateTime) ? $"je kan me vanaf {bellen} bereiken via {nummer}" : "Gelieve mij niet te bellen";
+            //Sendgrid werkt niet meer, dit was de oude implementatie
             //var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             //var apiKey = "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";
             //var client = new SendGridClient(apiKey);
@@ -163,7 +157,6 @@ namespace Setup.Controllers
     { "X-CUSTOM-HEADER", "Header content" }
 };
 
-            // Create a HeaderCollection using the dictionary
             var headers = new HeaderCollection(headerDictionary);
             var message = new PostmarkMessage()
             {
@@ -178,10 +171,7 @@ namespace Setup.Controllers
                 Headers = headers
             };
             var client = new PostmarkClient("ae222fd1-d50a-42c0-8a53-3dd46b2a2dda");
-            var sendResult = await client.SendMessageAsync(message);
-
-            if (sendResult.Status == PostmarkStatus.Success) { }
-            else { /* Resolve issue.*/ }
+            await client.SendMessageAsync(message);
         }
     }
 }
