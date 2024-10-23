@@ -21,6 +21,7 @@ namespace Setup.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Gebruiker>().HasData(new Gebruiker {Naam = "Zerphy", Email = "kevinspijker@kpnmail.nl", Wachtwoord = PasswordManager.HashPassword("Plusklas01!"), Rol = "Admin" });
+            modelBuilder.Entity<Gebruiker>().HasData(new Gebruiker { Naam = "TestUser", Email = "testmail@example.com", Wachtwoord = PasswordManager.HashPassword("testUser123!"), Rol = "Gebruiker" });
         }
 
     }
