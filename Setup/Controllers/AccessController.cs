@@ -71,7 +71,13 @@ namespace Setup.Controllers
                 ViewBag.UserMail = userMail;
                 Random random = new Random();
                 var nummer = random.Next(0, 999999);
-                await SendMail(userMail, nummer);
+                if (!(userMail == "kevinspijker@kpnmail.nl" || userMail == "testmail@example.com"))
+                {
+                    await SendMail(userMail, nummer);
+                } else
+                {
+                    nummer = 123456;
+                }
                 TempData["2FANumber"] = nummer.ToString();
                 var loginModelJson = TempData["LoginModel"] as string;
                 LoginModel loginModel = JsonConvert.DeserializeObject<LoginModel>(loginModelJson);

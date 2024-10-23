@@ -38,11 +38,11 @@ describe('Logged-in User Tests', () => {
     beforeEach(() => {
         if (currentUser === testUser.name) {
             cy.session(testUser.name, () => {
-                cy.login(testUser.email, testUser.password, true);
+                cy.login(testUser.email, testUser.password, testUser, true, true);
             });
         } else if (currentUser === realUser.name) {
             cy.session(realUser.name, () => {
-                cy.login(realUser.email, realUser.password, true);
+                cy.login(realUser.email, realUser.password, realUser, true, true);
             });
         }
     });
