@@ -57,6 +57,11 @@ describe('Logged-in User Tests', () => {
         cy.visit('http://145.44.234.91');
         cy.contains('a', 'Privacy').click();
     });
+    it('should log in as TestUser and show the Profile page', () => {
+        currentUser = testUser.name;
+        cy.visit('http://145.44.234.91');
+        cy.contains('a', 'Profiel').click();
+    });
 
     it('should log in as TestUser and show the CV page', () => {
         currentUser = testUser.name;
