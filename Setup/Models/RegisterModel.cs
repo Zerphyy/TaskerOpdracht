@@ -13,7 +13,7 @@ namespace Setup.Models
         public string? Username { get; set; }
 
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(50, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 50 characters.")]
+        [StringLength(128, MinimumLength = 12, ErrorMessage = "Password must be between 8 and 50 characters.")]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,50}$", ErrorMessage = "Password must include at least one capital letter, one number, and one special character.")]
         public string? Password { get; set; }
 

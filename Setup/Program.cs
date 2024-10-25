@@ -7,6 +7,21 @@ using System.Runtime.InteropServices;
 bool staysLoggedIn = false;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+    builder =>
+    {
+        builder.WithOrigins(
+            "https://cdnjs.cloudflare.com",   // SignalR
+            "https://code.jquery.com",         // jQuery
+            "https://www.gstatic.com",         // reCAPTCHA
+            "https://www.google.com"           // reCAPTCHA
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
 ConfigureServices(builder.Services);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(option =>
@@ -22,6 +37,7 @@ builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
 {
+    options.Cookie.Name = "__Host-Cookie";
     options.IdleTimeout = TimeSpan.FromSeconds(10);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
@@ -64,6 +80,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Add("X-Frame-Options", "DENY");
     context.Response.Headers.Add("Referrer-Policy", "no-referrer");
+    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:*");
     await next();
 });
 app.UseHttpsRedirection();
