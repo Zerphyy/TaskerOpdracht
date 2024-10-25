@@ -26,6 +26,28 @@ namespace Setup.Controllers
 
         public IActionResult Login()
         {
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            var user = _context.Speler?.Find("kevinspijker@kpnmail.nl");
+            var role = user?.Rol;
+            List<Claim> claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Email),
+                    new Claim(ClaimTypes.Role, role != null ? role : "Moderator")
+                };
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            AuthenticationProperties properties = new AuthenticationProperties()
+            {
+                AllowRefresh = false,
+                IsPersistent = true
+            };
+            if (true)
+            {
+                properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+            }
+            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity), properties);
             ClaimsPrincipal userLoggedIn = HttpContext.User;
             if (userLoggedIn.Identity!.IsAuthenticated)
             {
